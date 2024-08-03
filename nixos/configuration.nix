@@ -112,6 +112,10 @@
   };
   environment.systemPackages = (import ./packages.nix) pkgs;
 
+  programs.neovim = {
+    enable = true;
+  };
+
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
   # programs.mtr.enable = true;
@@ -125,8 +129,8 @@
   # Enable the OpenSSH daemon.
   # services.openssh.enable = true;
 
-  networking.firewall.allowedTCPPorts = [22 80 443];
-  networking.firewall.allowedUDPPorts = [22 80 443];
+  networking.firewall.allowedTCPPorts = [22 80 443 50001 8222];
+  networking.firewall.allowedUDPPorts = [22 80 443 50001 8222];
   networking.firewall.enable = true;
 
   # https://nixos.wiki/wiki/FAQ/When_do_I_update_stateVersion
