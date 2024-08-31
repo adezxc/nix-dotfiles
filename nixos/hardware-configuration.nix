@@ -16,6 +16,17 @@
   boot.initrd.kernelModules = [];
   boot.kernelModules = ["kvm-intel"];
   boot.extraModulePackages = [];
+  boot.kernelParams = [
+    "i915.enable_guc=2"
+  ];
+
+  hardware.opengl = {
+    enable = true;
+    extraPackages = with pkgs; [
+      intel-media-driver
+      intel-compute-runtime
+    ];
+  };
 
   fileSystems."/" = {
     device = "/dev/disk/by-uuid/62a5ed16-dd62-442c-8907-c52e138317f3";

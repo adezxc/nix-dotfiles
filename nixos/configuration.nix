@@ -106,9 +106,6 @@
   services.tailscale = {
     enable = true;
     useRoutingFeatures = "server";
-    extraUpFlags = [
-      "--advertise-exit-node"
-    ];
   };
   environment.systemPackages = (import ./packages.nix) pkgs;
 
@@ -129,8 +126,8 @@
   # Enable the OpenSSH daemon.
   # services.openssh.enable = true;
 
-  networking.firewall.allowedTCPPorts = [22 80 443 50001 8222];
-  networking.firewall.allowedUDPPorts = [22 80 443 50001 8222];
+  networking.firewall.allowedTCPPorts = [22 80 443 8222];
+  networking.firewall.allowedUDPPorts = [22 80 443 8222];
   networking.firewall.enable = true;
 
   # https://nixos.wiki/wiki/FAQ/When_do_I_update_stateVersion

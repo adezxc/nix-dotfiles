@@ -12,9 +12,11 @@
     stateDir = "/data/media/.state/nixarr";
 
     vpn = {
-      enable = false;
-      # WARNING: This file must _not_ be in the config git directory
-      # You can usually get this wireguard file from your VPN provider
+      enable = true;
+      vpnTestService = {
+        enable = true;
+        port = 34497;
+      };
       wgConf = "/data/.secret/wg.conf";
     };
 
@@ -32,8 +34,8 @@
 
     transmission = {
       enable = true;
-      vpn.enable = false;
-      peerPort = 50001; # Set this to the port forwarded by your VPN
+      vpn.enable = true;
+      peerPort = 34497; # Set this to the port forwarded by your VPN
     };
 
     # It is possible for this module to run the *Arrs through a VPN, but it

@@ -2,13 +2,13 @@
 with pkgs; [
   vim
 
-  ark
+  jetbrains.idea-ultimate
+
   unrar
   unzip
   atool
   zip
 
-  asciinema
   binutils
   curl
   direnv
@@ -21,6 +21,7 @@ with pkgs; [
   jq
   wget
 
+  zathura
   bat
   du-dust
   eza
