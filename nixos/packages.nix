@@ -1,9 +1,5 @@
 {pkgs, ...}:
 with pkgs; [
-  vim
-
-  jetbrains.idea-ultimate
-
   unrar
   unzip
   atool

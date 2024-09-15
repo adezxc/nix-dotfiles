@@ -5,9 +5,6 @@
 }: {
   nixarr = {
     enable = true;
-    # These two values are also the default, but you can set them to whatever
-    # else you want
-    # WARNING: Do _not_ set them to `/home/user/whatever`, it will not work!
     mediaDir = "/data/media";
     stateDir = "/data/media/.state/nixarr";
 
@@ -23,8 +20,6 @@
     jellyfin = {
       enable = true;
       openFirewall = true;
-      # These options set up a nginx HTTPS reverse proxy, so you can access
-      # Jellyfin on your domain with HTTPS
       expose.https = {
         enable = true;
         domainName = "jellyfin.adamjasinski.xyz";
@@ -38,8 +33,6 @@
       peerPort = 34497; # Set this to the port forwarded by your VPN
     };
 
-    # It is possible for this module to run the *Arrs through a VPN, but it
-    # is generally not recommended, as it can cause rate-limiting issues.
     bazarr.enable = true;
     prowlarr.enable = true;
     radarr.enable = true;
@@ -75,15 +68,23 @@
       locations."/" = {
         proxyPass = "http://127.0.0.1:8083";
       };
+
+      extraConfig = ''
+        client_body_in_file_only clean;
+        client_body_buffer_size 32k;
+        client_max_body_size 300M;
+        sendfile on;
+        send_timeout 300s;
+      '';
     };
 
-    virtualHosts."youtube.adamjasinski.xyz" = {
-      enableACME = true;
-      forceSSL = true;
-      locations."/" = {
-        proxyPass = "http://127.0.0.1:8111";
-      };
-    };
+    #virtualHosts."youtube.adamjasinski.xyz" = {
+    #  enableACME = true;
+    #  forceSSL = true;
+    #  locations."/" = {
+    #    proxyPass = "http://127.0.0.1:8111";
+    #  };
+    #};
   };
 
   services.vaultwarden = {
@@ -108,7 +109,7 @@
   };
 
   services.invidious = {
-    enable = true;
+    enable = false;
     port = 8111;
     domain = "youtube.adamjasinski.xyz";
     settings = lib.mkForce {
