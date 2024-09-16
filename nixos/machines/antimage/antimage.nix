@@ -24,8 +24,8 @@
 
   # Configure keymap in X11
   services.xserver = {
-    layout = "us";
-    xkbVariant = "";
+    xkb.layout = "us";
+    xkb.variant = "";
     enable = true;
     desktopManager = {
       xterm.enable = false;

@@ -80,6 +80,7 @@
         extraSpecialArgs = {inherit inputs outputs;};
         modules = [
           ./home-manager/home.nix
+          ./home-manager/i3.nix
         ];
       };
     };

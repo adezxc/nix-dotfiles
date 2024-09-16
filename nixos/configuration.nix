@@ -26,6 +26,9 @@
       experimental-features = "nix-command flakes";
       flake-registry = "";
       nix-path = config.nix.nixPath;
+      trusted-users = [
+        "adam"
+      ];
     };
     channel.enable = false;
 
