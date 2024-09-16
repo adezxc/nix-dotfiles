@@ -13,11 +13,11 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  nixpkgs = {
-    config = {
-      allowUnfree = true;
-    };
-  };
+  nixpkgs.config.allowUnfree = true;
+
+  time.timeZone = "Europe/Vilnius";
+
+  i18n.defaultLocale = "en_US.UTF-8";
 
   nix = let
     flakeInputs = lib.filterAttrs (_: lib.isType "flake") inputs;
@@ -57,6 +57,8 @@
 
   services.mullvad-vpn.enable = true;
 
+  services.tailscale.enable = true;
+
   environment.systemPackages = (import ./packages.nix) pkgs;
 
   programs.neovim.enable = true;
@@ -68,8 +70,8 @@
 
   programs.zsh.enable = true;
 
-  networking.firewall.allowedTCPPorts = [22 80 443 8222];
-  networking.firewall.allowedUDPPorts = [22 80 443 8222];
+  networking.firewall.allowedTCPPorts = [22];
+  networking.firewall.allowedUDPPorts = [22];
   networking.firewall.enable = true;
 
   system.stateVersion = "24.05";

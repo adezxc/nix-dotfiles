@@ -51,10 +51,26 @@
           nixarr.nixosModules.default
         ];
       };
+      
+      antimage = nixpkgs.lib.nixosSystem {
+        specialArgs = {inherit inputs outputs;};
+        modules = [
+          ./nixos/configuration.nix
+	  ./nixos/machines/antimage/antimage.nix
+        ];
+      };
     };
 
     homeConfigurations = {
       "adam@phoenix" = home-manager.lib.homeManagerConfiguration {
+        pkgs = nixpkgs.legacyPackages.x86_64-linux;
+        extraSpecialArgs = {inherit inputs outputs;};
+        modules = [
+          ./home-manager/home.nix
+        ];
+      };
+
+      "adam@antimage" = home-manager.lib.homeManagerConfiguration {
         pkgs = nixpkgs.legacyPackages.x86_64-linux;
         extraSpecialArgs = {inherit inputs outputs;};
         modules = [
