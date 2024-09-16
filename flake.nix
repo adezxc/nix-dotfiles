@@ -47,6 +47,7 @@
         specialArgs = {inherit inputs outputs;};
         modules = [
           ./nixos/configuration.nix
+	  ./nixos/machines/phoenix/phoenix.nix
           nixarr.nixosModules.default
         ];
       };

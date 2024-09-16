@@ -45,6 +45,20 @@
     recommendedTlsSettings = true;
     recommendedGzipSettings = true;
 
+    virtualHosts."adamjasinski.xyz" = {
+      enableACME = true;
+      forceSSL = true;
+      root = "/var/www/blog/public";
+    };
+
+    virtualHosts."jasinski.lt" = {
+      enableACME = true;
+      forceSSL = true;
+      locations."/" = {
+        proxyPass = "https://adamjasinski.xyz";
+      };
+    };
+
     # other Nginx options
     virtualHosts."jellyfin.adamjasinski.xyz" = {
       enableACME = true;
