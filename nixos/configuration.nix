@@ -68,8 +68,6 @@
 
   environment.systemPackages = (import ./packages.nix) pkgs;
 
-  programs.neovim.enable = true;
-
   programs.gnupg.agent = {
     enable = true;
     enableSSHSupport = true;

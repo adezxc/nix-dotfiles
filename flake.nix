@@ -13,11 +13,10 @@
     home-manager.url = "github:nix-community/home-manager/release-24.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
-    wezterm = {
-      url = "github:wez/wezterm/main?dir=nix";
+    nixvim = {
+      url = "github:adezxc/nixvim";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
     nixarr.url = "github:rasmus-kirk/nixarr";
   };
 
@@ -26,6 +25,7 @@
     nixpkgs,
     home-manager,
     nixarr,
+    nixvim,
     ...
   } @ inputs: let
     inherit (self) outputs;

@@ -17,5 +17,4 @@
     enable = true;
     useRoutingFeatures = "server";
   };
-
 }

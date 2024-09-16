@@ -26,6 +26,7 @@ with pkgs; [
   fd
   helix
   ripgrep
+  xclip
 
   hugo
 ]
