@@ -55,6 +55,10 @@
     };
   };
 
+  fonts.packages = with pkgs; [
+    nerdfonts
+  ];
+
   services.mullvad-vpn.enable = true;
 
   services.tailscale.enable = true;

@@ -13,6 +13,11 @@
     home-manager.url = "github:nix-community/home-manager/release-24.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
+    wezterm = {
+      url = "github:wez/wezterm/main?dir=nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     nixarr.url = "github:rasmus-kirk/nixarr";
   };
 
@@ -47,16 +52,16 @@
         specialArgs = {inherit inputs outputs;};
         modules = [
           ./nixos/configuration.nix
-	  ./nixos/machines/phoenix/phoenix.nix
+          ./nixos/machines/phoenix/phoenix.nix
           nixarr.nixosModules.default
         ];
       };
-      
+
       antimage = nixpkgs.lib.nixosSystem {
         specialArgs = {inherit inputs outputs;};
         modules = [
           ./nixos/configuration.nix
-	  ./nixos/machines/antimage/antimage.nix
+          ./nixos/machines/antimage/antimage.nix
         ];
       };
     };

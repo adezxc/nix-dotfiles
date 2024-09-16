@@ -5,6 +5,7 @@ with pkgs; [
   atool
   zip
 
+  wezterm
   binutils
   curl
   direnv
@@ -14,6 +15,7 @@ with pkgs; [
   fzf
   git
   htop
+  btop
   jq
   wget
 

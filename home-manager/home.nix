@@ -18,6 +18,7 @@
 
     # You can also split up your configuration and import pieces of it here:
     ./shell.nix
+    ./terminal.nix
   ];
 
   nixpkgs = {

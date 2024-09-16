@@ -14,7 +14,7 @@
 
   networking.hostName = "phoenix";
   services.tailscale = {
-  	enable = true;
-	useRoutingFeatures = "server";
+    enable = true;
+    useRoutingFeatures = "server";
   };
 }
