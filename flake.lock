@@ -454,6 +454,22 @@
       "locked": {
         "lastModified": 1726243404,
         "narHash": "sha256-sjiGsMh+1cWXb53Tecsm4skyFNag33GPbVgCdfj3n9I=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "345c263f2f53a3710abe117f28a5cb86d0ba4059",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_4": {
+      "locked": {
+        "lastModified": 1726243404,
+        "narHash": "sha256-sjiGsMh+1cWXb53Tecsm4skyFNag33GPbVgCdfj3n9I=",
         "owner": "NixOS",
         "repo": "nixpkgs",
         "rev": "345c263f2f53a3710abe117f28a5cb86d0ba4059",
@@ -466,7 +482,7 @@
         "type": "github"
       }
     },
-    "nixpkgs_4": {
+    "nixpkgs_5": {
       "locked": {
         "lastModified": 1719082008,
         "narHash": "sha256-jHJSUH619zBQ6WdC21fFAlDxHErKVDJ5fpN0Hgx4sjs=",
@@ -485,24 +501,19 @@
     "nixvim": {
       "inputs": {
         "flake-parts": "flake-parts_3",
-        "nixpkgs": [
-          "nixpkgs"
-        ],
+        "nixpkgs": "nixpkgs_3",
         "nixvim": "nixvim_2",
         "pre-commit-hooks": "pre-commit-hooks"
       },
       "locked": {
-        "lastModified": 1726506708,
-        "narHash": "sha256-BRzV8sCi7qWYdwWrjFZ5LpPsR0IIbEkRkssd8yPsk4Y=",
-        "owner": "adezxc",
-        "repo": "nixvim",
-        "rev": "2e4b17f9ba818b36e1d72d8ca67965bdeba204fb",
-        "type": "github"
+        "lastModified": 1726507438,
+        "narHash": "sha256-vT9IhxTBYaJ+c9411wbw09Y8/Olvn/4ppya3zb3d9yY=",
+        "path": "/home/adam/repos/nixvim/",
+        "type": "path"
       },
       "original": {
-        "owner": "adezxc",
-        "repo": "nixvim",
-        "type": "github"
+        "path": "/home/adam/repos/nixvim/",
+        "type": "path"
       }
     },
     "nixvim_2": {
@@ -513,7 +524,7 @@
         "git-hooks": "git-hooks",
         "home-manager": "home-manager_2",
         "nix-darwin": "nix-darwin",
-        "nixpkgs": "nixpkgs_3",
+        "nixpkgs": "nixpkgs_4",
         "nuschtosSearch": "nuschtosSearch",
         "treefmt-nix": "treefmt-nix_2"
       },
@@ -558,7 +569,7 @@
       "inputs": {
         "flake-compat": "flake-compat_2",
         "gitignore": "gitignore_2",
-        "nixpkgs": "nixpkgs_4",
+        "nixpkgs": "nixpkgs_5",
         "nixpkgs-stable": "nixpkgs-stable_2"
       },
       "locked": {
