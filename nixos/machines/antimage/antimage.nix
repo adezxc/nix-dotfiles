@@ -26,6 +26,7 @@
   services.xserver = {
     xkb.layout = "us";
     xkb.variant = "";
+    xkb.options = "caps:swapescape";
     enable = true;
     desktopManager = {
       xterm.enable = false;
