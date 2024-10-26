@@ -89,6 +89,29 @@
         client_max_body_size 300M;
         sendfile on;
         send_timeout 300s;
+
+
+      '';
+    };
+
+    virtualHosts."immich.adamjasinski.xyz" = {
+      enableACME = true;
+      forceSSL = true;
+      locations."/" = {
+        proxyPass = "http://127.0.0.1:3001";
+      };
+
+      extraConfig = ''
+        client_body_in_file_only clean;
+        client_body_buffer_size 32k;
+        client_max_body_size 300M;
+        sendfile on;
+        send_timeout 300s;
+
+	proxy_http_version 1.1;
+        proxy_set_header   Upgrade    $http_upgrade;
+        proxy_set_header   Connection "upgrade";
+        proxy_redirect     off;
       '';
     };
 
@@ -144,5 +167,17 @@
   security.acme = {
     acceptTerms = true;
     defaults.email = "adam@jasinski.lt";
+  };
+
+  services.immich = {
+  enable = true;
+  mediaLocation = "/data/media/photos";
+  openFirewall = true;
+  port = 3001;
+  host = "127.0.0.1";
+  machine-learning.enable = false;
+  environment = {
+    IMMICH_MACHINE_LEARNING_URL = lib.mkForce "http://alchemist:3003";
+  };
   };
 }
