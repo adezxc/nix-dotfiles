@@ -24,25 +24,19 @@
 
   # Configure keymap in X11
   services.xserver = {
-    xkb.layout = "us";
-    xkb.variant = "";
-    xkb.options = "caps:swapescape";
+    layout = "us,lt,ru";
+    xkbVariant = " ,us,phonetic";
+    xkbOptions = "caps:swapescape,grp:alt_shift_toggle";
     enable = true;
     desktopManager = {
       xterm.enable = false;
     };
     displayManager = {
       defaultSession = "none+i3";
+      lightdm.background = "/etc/nixos/background/landscape.jpg";
     };
-
     windowManager.i3 = {
       enable = true;
-      extraPackages = with pkgs; [
-        dmenu
-        i3status
-        i3lock
-        i3blocks
-      ];
     };
   };
 
