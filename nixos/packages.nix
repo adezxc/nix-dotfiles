@@ -5,6 +5,8 @@ with pkgs; [
   atool
   zip
 
+  killall
+
   wezterm
   binutils
   curl

@@ -60,6 +60,9 @@
 
   fonts.packages = with pkgs; [
     nerdfonts
+    font-awesome
+    siji
+    pango
   ];
 
   services.mullvad-vpn.enable = true;
