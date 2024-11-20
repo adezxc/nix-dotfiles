@@ -22,6 +22,8 @@
   # Enable networking
   networking.networkmanager.enable = true;
 
+  systemd.services.NetworkManager-wait-online.enable = false; 
+
   # Configure keymap in X11
   services.xserver = {
     layout = "us,lt,ru";
