@@ -30,5 +30,7 @@ with pkgs; [
   ripgrep
   xclip
 
+  go
+
   hugo
 ]
