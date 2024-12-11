@@ -31,6 +31,10 @@
       enable = true;
       vpn.enable = true;
       peerPort = 34497; # Set this to the port forwarded by your VPN
+      extraSettings = {
+        ratio-limit-enabled = true;
+        ratio-limit = 2.5;
+      };
     };
 
     bazarr.enable = true;
