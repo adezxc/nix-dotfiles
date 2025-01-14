@@ -10,10 +10,6 @@
 
     vpn = {
       enable = true;
-      vpnTestService = {
-        enable = true;
-        port = 34497;
-      };
       wgConf = "/data/.secret/wg.conf";
     };
 

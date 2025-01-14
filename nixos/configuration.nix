@@ -14,7 +14,12 @@
   boot.loader.efi.canTouchEfiVariables = true;
 
   nixpkgs.config.allowUnfree = true;
-
+  nixpkgs.config.permittedInsecurePackages = [
+    "aspnetcore-runtime-6.0.36"
+    "aspnetcore-runtime-wrapped-6.0.36"
+    "dotnet-sdk-6.0.428"
+    "dotnet-sdk-wrapped-6.0.428"
+  ];
   time.timeZone = "Europe/Vilnius";
 
   i18n.defaultLocale = "en_US.UTF-8";
@@ -42,6 +47,7 @@
       isNormalUser = true;
       openssh.authorizedKeys.keys = [
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILB1AzLhbytJCN8V6o/BxnJ7hka4J8GoZWRR9lwvELKr adam@alchemist"
+	"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK1KUerwqjiAYOBOX9EsPjs0WUi+I1M5Qi0CHzo3ZmZq adam@terrorblade"
       ];
       extraGroups = ["wheel"];
       shell = pkgs.zsh;
@@ -59,11 +65,10 @@
   };
 
   fonts.packages = with pkgs; [
-    nerdfonts
     font-awesome
     siji
     pango
-  ];
+  ] ++ builtins.filter lib.attrsets.isDerivation (builtins.attrValues pkgs.nerd-fonts);
 
   services.mullvad-vpn.enable = true;
 
