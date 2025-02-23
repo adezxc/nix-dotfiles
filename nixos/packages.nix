@@ -30,6 +30,8 @@ with pkgs; [
   ripgrep
   xclip
 
+  podman
+
   go
 
   hugo

@@ -59,6 +59,28 @@
       };
     };
 
+    virtualHosts."linkding.adamjasinski.xyz" = {
+      enableACME = true;
+      forceSSL = true;
+      locations."/" = {
+        proxyPass = "http://127.0.0.1:9090";
+      };
+
+      extraConfig = ''
+               client_body_in_file_only clean;
+               client_body_buffer_size 32k;
+               client_max_body_size 300M;
+               sendfile on;
+               send_timeout 300s;
+
+        proxy_http_version 1.1;
+               proxy_set_header   Upgrade    $http_upgrade;
+               proxy_set_header   Connection "upgrade";
+               proxy_redirect     off;
+        proxy_read_timeout 3600;
+      '';
+    };
+
     # other Nginx options
     virtualHosts."jellyfin.adamjasinski.xyz" = {
       enableACME = true;
@@ -102,16 +124,16 @@
       };
 
       extraConfig = ''
-        client_body_in_file_only clean;
-        client_body_buffer_size 32k;
-        client_max_body_size 300M;
-        sendfile on;
-        send_timeout 300s;
+               client_body_in_file_only clean;
+               client_body_buffer_size 32k;
+               client_max_body_size 300M;
+               sendfile on;
+               send_timeout 300s;
 
-	proxy_http_version 1.1;
-        proxy_set_header   Upgrade    $http_upgrade;
-        proxy_set_header   Connection "upgrade";
-        proxy_redirect     off;
+        proxy_http_version 1.1;
+               proxy_set_header   Upgrade    $http_upgrade;
+               proxy_set_header   Connection "upgrade";
+               proxy_redirect     off;
       '';
     };
 
@@ -170,14 +192,14 @@
   };
 
   services.immich = {
-  enable = true;
-  mediaLocation = "/data/media/photos";
-  openFirewall = true;
-  port = 3001;
-  host = "127.0.0.1";
-  machine-learning.enable = false;
-  environment = {
-    IMMICH_MACHINE_LEARNING_URL = lib.mkForce "http://alchemist:3003";
-  };
+    enable = true;
+    mediaLocation = "/data/media/photos";
+    openFirewall = true;
+    port = 3001;
+    host = "127.0.0.1";
+    machine-learning.enable = false;
+    environment = {
+      IMMICH_MACHINE_LEARNING_URL = lib.mkForce "http://alchemist:3003";
+    };
   };
 }
