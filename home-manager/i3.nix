@@ -23,8 +23,15 @@
         #}
       ];
       startup = [
-        { command = "systemctl --user restart polybar"; always = true; notification = false; }
-        { command = "source ~/.fehbg"; notification = false; }
+        {
+          command = "systemctl --user restart polybar";
+          always = true;
+          notification = false;
+        }
+        {
+          command = "source ~/.fehbg";
+          notification = false;
+        }
       ];
       keybindings = let
         modifier = config.xsession.windowManager.i3.config.modifier;
@@ -87,14 +94,14 @@
         pin-workspaces = true;
         index-sort = true;
 
-        label-focused =  "%index%";
+        label-focused = "%index%";
         label-focused-foreground = "#ffffff";
         label-focused-background = "#3f3f3f";
         label-focused-underline = "#fba922";
         label-focused-padding = 1;
 
         label-unfocused = "%index%";
-        label-unfocused-padding = 1; 
+        label-unfocused-padding = 1;
 
         label-visible = "%index%";
         label-visible-underline = "#555555";
@@ -109,7 +116,7 @@
         label-separator-padding = 0;
         label-separator-foreground = "#ffb52a";
       };
-      
+
       "module/temperature" = {
         type = "internal/temperature";
 
@@ -124,7 +131,7 @@
 
       "module/xkeyboard" = {
         type = "internal/xkeyboard";
-        
+
         blacklist-0 = "num lock";
         blacklist-1 = "scroll lock";
       };

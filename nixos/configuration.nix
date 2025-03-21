@@ -47,7 +47,7 @@
       isNormalUser = true;
       openssh.authorizedKeys.keys = [
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILB1AzLhbytJCN8V6o/BxnJ7hka4J8GoZWRR9lwvELKr adam@alchemist"
-	"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK1KUerwqjiAYOBOX9EsPjs0WUi+I1M5Qi0CHzo3ZmZq adam@terrorblade"
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK1KUerwqjiAYOBOX9EsPjs0WUi+I1M5Qi0CHzo3ZmZq adam@terrorblade"
       ];
       extraGroups = ["wheel"];
       shell = pkgs.zsh;
@@ -64,11 +64,13 @@
     };
   };
 
-  fonts.packages = with pkgs; [
-    font-awesome
-    siji
-    pango
-  ] ++ builtins.filter lib.attrsets.isDerivation (builtins.attrValues pkgs.nerd-fonts);
+  fonts.packages = with pkgs;
+    [
+      font-awesome
+      siji
+      pango
+    ]
+    ++ builtins.filter lib.attrsets.isDerivation (builtins.attrValues pkgs.nerd-fonts);
 
   services.mullvad-vpn.enable = true;
 
@@ -83,22 +85,21 @@
 
   virtualisation.docker.enable = true;
   virtualisation.docker.daemon.settings = {
-  data-root = "/data/media/docker";
+    data-root = "/data/media/docker";
   };
 
   virtualisation.oci-containers = {
-  backend = "docker";
-  containers = {
-    linkding = {
-      image = "sissbruecker/linkding:latest";
-      ports = ["127.0.0.1:9090:9090"];
-      volumes = [
-	"/data/media/linkding:/etc/linkding/data"
-      ];
+    backend = "docker";
+    containers = {
+      linkding = {
+        image = "sissbruecker/linkding:latest";
+        ports = ["127.0.0.1:9090:9090"];
+        volumes = [
+          "/data/media/linkding:/etc/linkding/data"
+        ];
+      };
     };
   };
-};
-
 
   programs.zsh.enable = true;
 

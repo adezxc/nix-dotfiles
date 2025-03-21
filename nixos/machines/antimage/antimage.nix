@@ -22,7 +22,7 @@
   # Enable networking
   networking.networkmanager.enable = true;
 
-  systemd.services.NetworkManager-wait-online.enable = false; 
+  systemd.services.NetworkManager-wait-online.enable = false;
 
   # Configure keymap in X11
   services.xserver = {

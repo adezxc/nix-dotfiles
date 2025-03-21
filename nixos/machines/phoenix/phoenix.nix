@@ -11,6 +11,7 @@
     ./hardware-configuration.nix
     ./media.nix
     ./packages.nix
+    ./backups.nix
   ];
 
   networking.hostName = "phoenix";

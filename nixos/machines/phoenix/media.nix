@@ -154,6 +154,7 @@
       DOMAIN = "https://vaultwarden.adamjasinski.xyz";
       SIGNUPS_ALLOWED = false;
     };
+    backupDir = "/var/backup/vaultwarden";
   };
 
   services.calibre-web = {
