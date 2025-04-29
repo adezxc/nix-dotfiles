@@ -260,11 +260,11 @@
         "website-builder": "website-builder"
       },
       "locked": {
-        "lastModified": 1742243092,
-        "narHash": "sha256-pTMB/aLTufgNX3rJlT5Ia64TofZxOdEGMl9nfc3D++o=",
+        "lastModified": 1743834822,
+        "narHash": "sha256-VZZrnfnhhrS1f02Ewyx8OBotsGzRouJRn6Q4JK0HVjk=",
         "owner": "rasmus-kirk",
         "repo": "nixarr",
-        "rev": "046ec8d875611ec2c93d5c45eebf6b46f0f350e8",
+        "rev": "2038a5985b230668a491d25bf5298fd48781676a",
         "type": "github"
       },
       "original": {
@@ -335,11 +335,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1742422364,
-        "narHash": "sha256-mNqIplmEohk5jRkqYqG19GA8MbQ/D4gQSK0Mu4LvfRQ=",
+        "lastModified": 1745794561,
+        "narHash": "sha256-T36rUZHUART00h3dW4sV5tv4MrXKT7aWjNfHiZz7OHg=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "a84ebe20c6bc2ecbcfb000a50776219f48d134cc",
+        "rev": "5461b7fa65f3ca74cef60be837fd559a8918eaa0",
         "type": "github"
       },
       "original": {
