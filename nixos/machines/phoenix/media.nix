@@ -33,6 +33,18 @@
       };
     };
 
+    recyclarr = {
+      enable = true;
+      configFile = "/etc/nixos/recyclarr.yaml";
+    };
+
+    sabnzbd = {
+      vpn.enable = true;
+      openFirewall = true;
+      enable = true;
+      guiPort = 9999;
+    };
+
     bazarr.enable = true;
     prowlarr.enable = true;
     radarr.enable = true;
