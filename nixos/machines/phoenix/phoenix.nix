@@ -12,6 +12,7 @@
     ./media.nix
     ./packages.nix
     ./backups.nix
+    ./wakapi.nix
   ];
 
   networking.hostName = "phoenix";
