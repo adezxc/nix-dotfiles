@@ -39,7 +39,6 @@
     };
 
     sabnzbd = {
-      vpn.enable = true;
       openFirewall = true;
       enable = true;
       guiPort = 9999;
