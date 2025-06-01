@@ -2,7 +2,12 @@
   nixarr,
   lib,
   ...
-}: {
+}: let
+  karakeepVars = {
+    PORT = "1234";
+    DISABLE_SIGNUPS = "false";
+  };
+in {
   nixarr = {
     enable = true;
     mediaDir = "/data/media";
@@ -40,6 +45,7 @@
 
     sabnzbd = {
       openFirewall = true;
+      vpn.enable = true;
       enable = true;
       guiPort = 9999;
     };
@@ -70,29 +76,6 @@
       };
     };
 
-    virtualHosts."linkding.adamjasinski.xyz" = {
-      enableACME = true;
-      forceSSL = true;
-      locations."/" = {
-        proxyPass = "http://127.0.0.1:9090";
-      };
-
-      extraConfig = ''
-               client_body_in_file_only clean;
-               client_body_buffer_size 32k;
-               client_max_body_size 300M;
-               sendfile on;
-               send_timeout 300s;
-
-        proxy_http_version 1.1;
-               proxy_set_header   Upgrade    $http_upgrade;
-               proxy_set_header   Connection "upgrade";
-               proxy_redirect     off;
-        proxy_read_timeout 3600;
-      '';
-    };
-
-    # other Nginx options
     virtualHosts."jellyfin.adamjasinski.xyz" = {
       enableACME = true;
       forceSSL = true;
@@ -148,6 +131,45 @@
       '';
     };
 
+    virtualHosts."karakeep.adamjasinski.xyz" = {
+      enableACME = true;
+      forceSSL = true;
+      locations."/" = {
+        proxyPass = "http://127.0.0.1:1234";
+      };
+
+      extraConfig = ''
+               client_body_in_file_only clean;
+               client_body_buffer_size 32k;
+               client_max_body_size 300M;
+               sendfile on;
+               send_timeout 300s;
+
+        proxy_http_version 1.1;
+               proxy_set_header   Upgrade    $http_upgrade;
+               proxy_set_header   Connection "upgrade";
+               proxy_redirect     off;
+      '';
+    };
+
+    virtualHosts."freshrss.adamjasinski.xyz" = {
+      enableACME = true;
+      forceSSL = true;
+
+      extraConfig = ''
+               client_body_in_file_only clean;
+               client_body_buffer_size 32k;
+               client_max_body_size 300M;
+               sendfile on;
+               send_timeout 300s;
+
+        proxy_http_version 1.1;
+               proxy_set_header   Upgrade    $http_upgrade;
+               proxy_set_header   Connection "upgrade";
+               proxy_redirect     off;
+      '';
+    };
+
     #virtualHosts."youtube.adamjasinski.xyz" = {
     #  enableACME = true;
     #  forceSSL = true;
@@ -155,6 +177,13 @@
     #    proxyPass = "http://127.0.0.1:8111";
     #  };
     #};
+  };
+
+  services.karakeep = {
+    enable = true;
+    meilisearch.enable = true;
+    browser.enable = true;
+    environmentFile = "/etc/nixos/karakeep.env";
   };
 
   services.vaultwarden = {
@@ -179,28 +208,16 @@
     openFirewall = true;
   };
 
-  services.invidious = {
-    enable = false;
-    port = 8111;
-    domain = "youtube.adamjasinski.xyz";
-    settings = lib.mkForce {
-      db = {
-        dbname = "invidious";
-        host = "";
-        password = "";
-        port = 5432;
-        user = "invidious";
-      };
-      admins = [
-        "adezxc"
-      ];
-      https_only = true;
-    };
-  };
-
   security.acme = {
     acceptTerms = true;
     defaults.email = "adam@jasinski.lt";
+  };
+
+  services.freshrss = {
+    enable = true;
+    baseUrl = "https://freshrss.example.com";
+    virtualHost = "freshrss.adamjasinski.xyz";
+    passwordFile = "/etc/nixos/freshrss_password";
   };
 
   services.immich = {

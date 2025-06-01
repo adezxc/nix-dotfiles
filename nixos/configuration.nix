@@ -83,23 +83,8 @@
     enableSSHSupport = true;
   };
 
-  virtualisation.docker.enable = true;
-  virtualisation.docker.daemon.settings = {
-    data-root = "/data/media/docker";
-  };
+  systemd.services.NetworkManager-wait-online.enable = false;
 
-  virtualisation.oci-containers = {
-    backend = "docker";
-    containers = {
-      linkding = {
-        image = "sissbruecker/linkding:latest";
-        ports = ["127.0.0.1:9090:9090"];
-        volumes = [
-          "/data/media/linkding:/etc/linkding/data"
-        ];
-      };
-    };
-  };
 
   programs.zsh.enable = true;
 
