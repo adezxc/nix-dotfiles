@@ -56,6 +56,64 @@ in {
     sonarr.enable = true;
   };
 
+  services.audiobookshelf = {
+    enable = true;
+    openFirewall = true;
+  };
+
+  services.karakeep = {
+    enable = true;
+    meilisearch.enable = true;
+    browser.enable = true;
+    environmentFile = "/etc/nixos/karakeep.env";
+  };
+
+  services.vaultwarden = {
+    enable = true;
+    config = {
+      ROCKET_ADDRESS = "127.0.0.1";
+      ROCKET_PORT = 8222;
+      DOMAIN = "https://vaultwarden.adamjasinski.xyz";
+      SIGNUPS_ALLOWED = false;
+    };
+    backupDir = "/var/backup/vaultwarden";
+  };
+
+  services.calibre-web = {
+    listen.ip = "127.0.0.1";
+    enable = true;
+    options = {
+      enableBookUploading = true;
+      enableBookConversion = true;
+      calibreLibrary = "/data/media/books";
+    };
+    openFirewall = true;
+  };
+
+  security.acme = {
+    acceptTerms = true;
+    defaults.email = "adam@jasinski.lt";
+  };
+
+  services.freshrss = {
+    enable = true;
+    baseUrl = "https://freshrss.example.com";
+    virtualHost = "freshrss.adamjasinski.xyz";
+    passwordFile = "/etc/nixos/freshrss_password";
+  };
+
+  services.immich = {
+    enable = true;
+    mediaLocation = "/data/media/photos";
+    openFirewall = true;
+    port = 3002;
+    host = "127.0.0.1";
+    machine-learning.enable = false;
+    environment = {
+      IMMICH_MACHINE_LEARNING_URL = lib.mkForce "http://alchemist:3003";
+    };
+  };
+
   services.nginx = {
     enable = true;
     recommendedProxySettings = true;
@@ -84,6 +142,15 @@ in {
       };
     };
 
+    virtualHosts."audiobooks.adamjasinski.xyz" = {
+      enableACME = true;
+      forceSSL = true;
+      locations."/" = {
+        proxyPass = "http://127.0.0.1:8000";
+        proxyWebsockets = true;
+      };
+    };
+
     virtualHosts."vaultwarden.adamjasinski.xyz" = {
       enableACME = true;
       forceSSL = true;
@@ -105,8 +172,6 @@ in {
         client_max_body_size 300M;
         sendfile on;
         send_timeout 300s;
-
-
       '';
     };
 
@@ -114,7 +179,7 @@ in {
       enableACME = true;
       forceSSL = true;
       locations."/" = {
-        proxyPass = "http://127.0.0.1:3001";
+        proxyPass = "http://127.0.0.1:3002";
       };
 
       extraConfig = ''
@@ -168,67 +233,6 @@ in {
                proxy_set_header   Connection "upgrade";
                proxy_redirect     off;
       '';
-    };
-
-    #virtualHosts."youtube.adamjasinski.xyz" = {
-    #  enableACME = true;
-    #  forceSSL = true;
-    #  locations."/" = {
-    #    proxyPass = "http://127.0.0.1:8111";
-    #  };
-    #};
-  };
-
-  services.karakeep = {
-    enable = true;
-    meilisearch.enable = true;
-    browser.enable = true;
-    environmentFile = "/etc/nixos/karakeep.env";
-  };
-
-  services.vaultwarden = {
-    enable = true;
-    config = {
-      ROCKET_ADDRESS = "127.0.0.1";
-      ROCKET_PORT = 8222;
-      DOMAIN = "https://vaultwarden.adamjasinski.xyz";
-      SIGNUPS_ALLOWED = false;
-    };
-    backupDir = "/var/backup/vaultwarden";
-  };
-
-  services.calibre-web = {
-    listen.ip = "127.0.0.1";
-    enable = true;
-    options = {
-      enableBookUploading = true;
-      enableBookConversion = true;
-      calibreLibrary = "/data/media/books";
-    };
-    openFirewall = true;
-  };
-
-  security.acme = {
-    acceptTerms = true;
-    defaults.email = "adam@jasinski.lt";
-  };
-
-  services.freshrss = {
-    enable = true;
-    baseUrl = "https://freshrss.example.com";
-    virtualHost = "freshrss.adamjasinski.xyz";
-    passwordFile = "/etc/nixos/freshrss_password";
-  };
-
-  services.immich = {
-    enable = true;
-    mediaLocation = "/data/media/photos";
-    openFirewall = true;
-    port = 3001;
-    host = "127.0.0.1";
-    machine-learning.enable = false;
-    environment = {
-      IMMICH_MACHINE_LEARNING_URL = lib.mkForce "http://alchemist:3003";
     };
   };
 }

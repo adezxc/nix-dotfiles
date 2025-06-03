@@ -31,7 +31,7 @@
   };
 
   systemd.services.jellyfin.environment.LIBVA_DRIVER_NAME = "iHD";
-  environment.sessionVariables = { LIBVA_DRIVER_NAME = "iHD"; };
+  environment.sessionVariables = {LIBVA_DRIVER_NAME = "iHD";};
 
   fileSystems."/" = {
     device = "/dev/disk/by-uuid/62a5ed16-dd62-442c-8907-c52e138317f3";

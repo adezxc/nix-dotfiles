@@ -8,6 +8,8 @@
       "/var/backup/vaultwarden"
       "/data/media/photos"
       "/data/media/.state/nixarr"
+      "/data/media/library/audiobooks"
+      "/data/media/library/podcasts"
     ];
   };
 }
