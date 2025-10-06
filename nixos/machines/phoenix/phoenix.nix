@@ -14,6 +14,7 @@
     ./backups.nix
     ./wakapi.nix
     ./audioteka-abs.nix
+    ./adguard.nix
   ];
 
   networking.hostName = "phoenix";

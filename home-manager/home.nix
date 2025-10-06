@@ -6,7 +6,6 @@
   lib,
   config,
   pkgs,
-  nixvim,
   ...
 }: {
   # You can import other home-manager modules here
@@ -34,7 +33,7 @@
     username = "adam";
     homeDirectory = "/home/adam";
     packages = [
-      inputs.nixvim.packages.x86_64-linux.default
+      #inputs.nixvim.packages.x86_64-linux.default
     ];
   };
 

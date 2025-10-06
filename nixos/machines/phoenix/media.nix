@@ -30,7 +30,7 @@ in {
 
     transmission = {
       enable = true;
-      vpn.enable = true;
+      vpn.enable = false;
       peerPort = 34497; # Set this to the port forwarded by your VPN
       extraSettings = {
         ratio-limit-enabled = true;
@@ -45,7 +45,7 @@ in {
 
     sabnzbd = {
       openFirewall = true;
-      vpn.enable = true;
+      vpn.enable = false;
       enable = true;
       guiPort = 9999;
     };
