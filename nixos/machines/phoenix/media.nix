@@ -61,13 +61,6 @@ in {
     openFirewall = true;
   };
 
-  services.karakeep = {
-    enable = true;
-    meilisearch.enable = true;
-    browser.enable = true;
-    environmentFile = "/etc/nixos/karakeep.env";
-  };
-
   services.vaultwarden = {
     enable = true;
     config = {
