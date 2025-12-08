@@ -14,7 +14,7 @@ in {
     stateDir = "/data/media/.state/nixarr";
 
     vpn = {
-      enable = true;
+      enable = false;
       wgConf = "/data/.secret/wg.conf";
     };
 
@@ -43,6 +43,10 @@ in {
       configFile = "/etc/nixos/recyclarr.yaml";
     };
 
+    lidarr = {
+      enable = true;
+    };
+
     sabnzbd = {
       openFirewall = true;
       vpn.enable = false;
@@ -50,15 +54,19 @@ in {
       guiPort = 9999;
     };
 
+    audiobookshelf = {
+      enable = true;
+      openFirewall = true;
+      expose.https = {
+        enable = true;
+        domainName = "audiobooks.adamjasinski.xyz";
+        acmeMail = "adam@jasinski.lt";
+      };
+    };
     bazarr.enable = true;
     prowlarr.enable = true;
     radarr.enable = true;
     sonarr.enable = true;
-  };
-
-  services.audiobookshelf = {
-    enable = true;
-    openFirewall = true;
   };
 
   services.vaultwarden = {
@@ -135,15 +143,6 @@ in {
       };
     };
 
-    virtualHosts."audiobooks.adamjasinski.xyz" = {
-      enableACME = true;
-      forceSSL = true;
-      locations."/" = {
-        proxyPass = "http://127.0.0.1:8000";
-        proxyWebsockets = true;
-      };
-    };
-
     virtualHosts."vaultwarden.adamjasinski.xyz" = {
       enableACME = true;
       forceSSL = true;
@@ -160,7 +159,6 @@ in {
       };
 
       extraConfig = ''
-        client_body_in_file_only clean;
         client_body_buffer_size 32k;
         client_max_body_size 300M;
         sendfile on;

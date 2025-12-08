@@ -23,7 +23,7 @@ with pkgs; [
 
   zathura
   bat
-  du-dust
+  dust
   eza
   fd
   helix
