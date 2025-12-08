@@ -14,6 +14,8 @@
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
     nixarr.url = "github:rasmus-kirk/nixarr";
+
+    agenix.url = "github:ryantm/agenix";
   };
 
   outputs = {
@@ -21,6 +23,7 @@
     nixpkgs,
     home-manager,
     nixarr,
+    agenix,
     ...
   } @ inputs: let
     inherit (self) outputs;
@@ -48,6 +51,7 @@
           ./nixos/configuration.nix
           ./nixos/machines/phoenix/phoenix.nix
           nixarr.nixosModules.default
+          agenix.nixosModules.default
         ];
       };
 

@@ -16,9 +16,19 @@
       # https://www.home-assistant.io/integrations/isal
       "isal"
       "zha"
+      "prometheus"
     ];
     config = {
-      default_config={};
+      default_config = {};
+      homeassistant = {
+        name = "Home";
+        latitude = "54.71";
+        longitude = "25.23";
+        elevation = "112";
+        unit_system = "metric";
+        time_zone = "EET";
+      };
+      prometheus = {};
     };
   };
 }

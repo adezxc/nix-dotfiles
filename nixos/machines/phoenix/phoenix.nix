@@ -4,6 +4,7 @@
   lib,
   config,
   pkgs,
+  flakeDir,
   ...
 }: {
   # You can import other NixOS modules here

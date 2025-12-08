@@ -1,5 +1,10 @@
-{ config, pkgs, ... }:
+{ agenix, config, pkgs, ... }:
 {
+  age.secrets = {
+    home-assistant.file = ../../../secrets/home-assistant.age;
+
+    home-assistant.owner = "prometheus";
+  };
   # https://nixos.org/manual/nixos/stable/#module-services-prometheus-exporters
   # https://github.com/NixOS/nixpkgs/blob/nixos-24.05/nixos/modules/services/monitoring/prometheus/exporters.nix
   services.prometheus.exporters.node = {
@@ -25,12 +30,26 @@
   services.prometheus = {
     enable = true;
     globalConfig.scrape_interval = "30s"; # "1m"
+    checkConfig = false;
     scrapeConfigs = [
       {
-        job_name = "node";
+        job_name = "node_exporter";
         static_configs = [{
-          targets = [ "localhost:${toString config.services.prometheus.exporters.node.port}" ];
+          targets = [
+            "localhost:${toString config.services.prometheus.exporters.node.port}"
+          ];
         }];
+      }
+      {
+        job_name = "home_assistant";
+        static_configs = [{
+          targets = [
+            "localhost:${toString config.services.home-assistant.config.http.server_port}"
+          ];
+        }
+        ];
+        metrics_path = "/api/prometheus";
+        bearer_token_file = "${config.age.secrets.home-assistant.path}";
       }
     ];
   };
@@ -42,14 +61,7 @@
         http_addr = "0.0.0.0";
         http_port = 3000;
         enable_gzip = true;
-
-        # Alternatively, if you want to serve Grafana from a subpath:
-        # domain = "your.domain";
-        # root_url = "https://your.domain/grafana/";
-        # serve_from_sub_path = true;
       };
-
-      # Prevents Grafana from phoning home
       analytics.reporting_enabled = false;
     };
   };
