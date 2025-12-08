@@ -15,6 +15,7 @@
     ./wakapi.nix
     ./audioteka-abs.nix
     ./adguard.nix
+    ./home-assistant.nix
   ];
 
   networking.hostName = "phoenix";

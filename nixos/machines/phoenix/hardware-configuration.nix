@@ -14,10 +14,14 @@
 
   boot.initrd.availableKernelModules = ["xhci_pci" "ahci" "nvme" "sd_mod"];
   boot.initrd.kernelModules = [];
-  boot.kernelModules = ["kvm-intel"];
   boot.extraModulePackages = [];
   boot.kernelParams = [
     "i915.enable_guc=2"
+  ];
+  boot.kernelModules = [
+  "kvm-intel"
+  # For Sonoff Dongle-P (CC2652P) or similar that use the CH340 chip
+  "ch341" 
   ];
 
   hardware.graphics = {
