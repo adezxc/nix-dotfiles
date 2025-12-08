@@ -14,7 +14,6 @@
     ./backups.nix
     ./wakapi.nix
     ./audioteka-abs.nix
-    ./adguard.nix
     ./home-assistant.nix
   ];
 
