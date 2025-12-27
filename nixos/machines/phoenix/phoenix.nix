@@ -17,6 +17,7 @@
     ./audioteka-abs.nix
     ./home-assistant.nix
     ./metrics.nix
+    ./jellystat.nix
   ];
 
   networking.hostName = "phoenix";

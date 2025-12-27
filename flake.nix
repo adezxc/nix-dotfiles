@@ -48,9 +48,15 @@
       phoenix = nixpkgs.lib.nixosSystem {
         specialArgs = {inherit inputs outputs;};
         modules = [
+          ({pkgs, ...}: {
+            nixpkgs.overlays = [
+              outputs.overlays.additions
+            ];
+          })
           ./nixos/configuration.nix
           ./nixos/machines/phoenix/phoenix.nix
           nixarr.nixosModules.default
+          outputs.nixosModules.jellystat
           agenix.nixosModules.default
         ];
       };

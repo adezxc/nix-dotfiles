@@ -66,13 +66,10 @@
 
   fonts.packages = with pkgs;
     [
-      font-awesome
       siji
       pango
     ]
     ++ builtins.filter lib.attrsets.isDerivation (builtins.attrValues pkgs.nerd-fonts);
-
-  services.mullvad-vpn.enable = true;
 
   services.tailscale.enable = true;
 
@@ -84,7 +81,6 @@
   };
 
   systemd.services.NetworkManager-wait-online.enable = false;
-
 
   programs.zsh.enable = true;
 

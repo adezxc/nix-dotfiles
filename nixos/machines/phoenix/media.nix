@@ -28,6 +28,10 @@ in {
       };
     };
 
+    jellyseerr = {
+      enable = true;
+    };
+
     transmission = {
       enable = true;
       vpn.enable = false;

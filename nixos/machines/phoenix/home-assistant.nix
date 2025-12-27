@@ -1,9 +1,5 @@
-{
-  lib,
-  ...
-}:
-{
-  users.extraGroups.dialout.members = [ "homeassistant" ];
+{lib, ...}: {
+  users.extraGroups.dialout.members = ["homeassistant"];
   services.home-assistant = {
     enable = true;
     extraComponents = [
@@ -29,6 +25,8 @@
         time_zone = "EET";
       };
       prometheus = {};
+
+      "automation" = "!include automations.yaml";
     };
   };
 }
