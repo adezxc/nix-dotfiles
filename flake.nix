@@ -57,6 +57,7 @@
           ./nixos/machines/phoenix/phoenix.nix
           nixarr.nixosModules.default
           outputs.nixosModules.jellystat
+          outputs.nixosModules.maintainerr
           agenix.nixosModules.default
         ];
       };

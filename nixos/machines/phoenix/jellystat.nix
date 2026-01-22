@@ -16,4 +16,8 @@
     timezone = "Europe/Vilnius";
     port = 9595;
   };
+
+  services.maintainerr = {
+    enable = true;
+  };
 }

@@ -61,10 +61,9 @@ in {
       requires = ["postgresql.service"];
       wantedBy = ["multi-user.target"];
 
-
       serviceConfig = {
         # Run node directly on the entrypoint in the writable directory
-        PermissionsStartOnly = true; 
+        PermissionsStartOnly = true;
 
         ExecStartPre = pkgs.writeShellScript "jellystat-setup" ''
           # 1. Clean up everything except the database or persistent logs

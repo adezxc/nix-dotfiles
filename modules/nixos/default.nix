@@ -3,4 +3,5 @@
 {
   # List your module files here
   jellystat = import ./jellystat.nix;
+  maintainerr = import ./maintainerr.nix;
 }

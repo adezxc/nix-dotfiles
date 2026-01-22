@@ -2,4 +2,5 @@
 # You can build them using 'nix build .#example'
 pkgs: {
   jellystat = pkgs.callPackage ./jellystat.nix {};
+  maintainerr = pkgs.callPackage ./maintainerr.nix {};
 }
