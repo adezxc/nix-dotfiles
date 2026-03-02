@@ -26,6 +26,8 @@
     useRoutingFeatures = "server";
   };
 
+  security.sudo.wheelNeedsPassword = false;
+
   networking.firewall = {
     enable = true;
     trustedInterfaces = [
