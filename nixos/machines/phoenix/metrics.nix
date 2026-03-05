@@ -74,6 +74,7 @@
         # Optional: You can also define the role here
         # org_role = "Viewer";
       };
+      security.secret_key = "abc";
 
       "auth.basic" = {
         enabled = false;

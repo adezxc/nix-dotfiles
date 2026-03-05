@@ -13,7 +13,6 @@
     ./media.nix
     ./packages.nix
     ./backups.nix
-    ./wakapi.nix
     ./audioteka-abs.nix
     ./home-assistant.nix
     ./metrics.nix
@@ -23,6 +22,7 @@
   networking.hostName = "phoenix";
   services.tailscale = {
     enable = true;
+    extraUpFlags = [ "--accept-dns=false" ];
     useRoutingFeatures = "server";
   };
 
