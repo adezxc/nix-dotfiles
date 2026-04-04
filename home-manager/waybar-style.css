@@ -53,6 +53,8 @@ window#waybar {
 #temperature,
 #network,
 #pulseaudio,
+#battery,
+#language,
 #clock,
 #tray,
 #idle_inhibitor {
@@ -69,6 +71,11 @@ window#waybar {
 #network.disconnected { color: #2E3440; background-color: #BF616A; }
 #pulseaudio { color: #B48EAD; }
 #pulseaudio.muted { color: #4C566A; }
+#language { color: #EBCB8B; }
+#battery { color: #A3BE8C; }
+#battery.warning { color: #EBCB8B; }
+#battery.critical { color: #BF616A; }
+#battery.charging { color: #A3BE8C; }
 
 #clock {
     font-weight: bold;

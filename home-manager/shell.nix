@@ -15,8 +15,11 @@
   programs = {
     ssh = {
       enable = true;
-      addKeysToAgent = "yes";
+      enableDefaultConfig = false;
       matchBlocks = {
+        "*" = {
+          addKeysToAgent = "yes";
+        };
         "*.vinted.infra *.vinted.net" = {
           user = "ajasinski";
           addKeysToAgent = "yes";
@@ -57,6 +60,10 @@
         ssh = "TERM=xterm-256color /usr/bin/ssh";
       };
 
+      envExtra = ''
+        [ -f ~/.zshenv.local ] && source ~/.zshenv.local
+      '';
+
       sessionVariables = {
         KITCHEN_DRIVER = "digitalocean";
         FZF_ALT_C_COMMAND = "";
@@ -67,7 +74,12 @@
         path = "${config.xdg.dataHome}/zsh/history";
       };
 
-      initExtra = ''
+      initContent = ''
+        autoload edit-command-line
+        zle -N edit-command-line
+        bindkey '^Xe' edit-command-line
+        bindkey '^W' vi-backward-kill-word
+
         if [[ -n $SSH_CONNECTION ]]; then
           export EDITOR='vim'
         else
@@ -109,7 +121,6 @@
           fi
         }
 
-        [ -f ~/.zshenv ] && source ~/.zshenv
       '';
     };
 

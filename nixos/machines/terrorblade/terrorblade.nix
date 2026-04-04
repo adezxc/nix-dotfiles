@@ -28,6 +28,8 @@
   networking.hostName = "terrorblade";
   networking.networkmanager.enable = true;
 
+  programs.openvpn3.enable = true;
+
   # Use systemd-networkd for networking (needed for microvm bridge)
   networking.useNetworkd = true;
   systemd.network.enable = true;
@@ -83,6 +85,28 @@
   ];
 
   hardware.graphics.enable = true;
+
+  services.tlp = {
+    enable = true;
+    settings = {
+      START_CHARGE_THRESH_BAT0 = 20;
+      STOP_CHARGE_THRESH_BAT0 = 80;
+
+      # WiFi powersave off (unreliable, causes latency spikes)
+      WIFI_PWR_ON_AC = "off";
+      WIFI_PWR_ON_BAT = "off";
+
+      # CPU
+      CPU_ENERGY_PERF_POLICY_ON_AC = "balance_performance";
+      CPU_ENERGY_PERF_POLICY_ON_BAT = "power";
+      CPU_BOOST_ON_AC = 1;
+      CPU_BOOST_ON_BAT = 0;
+
+      # Runtime power management for PCI/USB
+      RUNTIME_PM_ON_AC = "on";
+      RUNTIME_PM_ON_BAT = "auto";
+    };
+  };
 
   security.sudo.wheelNeedsPassword = false;
   security.polkit.enable = true;

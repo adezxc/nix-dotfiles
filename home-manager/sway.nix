@@ -148,6 +148,35 @@
       gaps.inner = 10;
       workspaceLayout = "tabbed";
 
+      fonts = {
+        names = [ "MesloLGS Nerd Font" "Hack" ];
+        size = 11.0;
+      };
+
+      colors = {
+        focused = {
+          border = "#88C0D0";
+          background = "#3B4252";
+          text = "#ECEFF4";
+          indicator = "#88C0D0";
+          childBorder = "#88C0D0";
+        };
+        focusedInactive = {
+          border = "#4C566A";
+          background = "#2E3440";
+          text = "#D8DEE9";
+          indicator = "#4C566A";
+          childBorder = "#4C566A";
+        };
+        unfocused = {
+          border = "#3B4252";
+          background = "#2E3440";
+          text = "#4C566A";
+          indicator = "#3B4252";
+          childBorder = "#3B4252";
+        };
+      };
+
       bars = [{
         command = "${pkgs.waybar}/bin/waybar";
       }];
@@ -157,7 +186,12 @@
       };
 
       input = {
-        "type:touchpad" = {
+        "1:1:AT_Translated_Set_2_keyboard" = {
+          xkb_layout = "pl,lt,ru";
+          xkb_variant = ",us,phonetic";
+          xkb_options = "grp:alt_shift_toggle";
+        };
+        "1739:52839:SYNA8018:00_06CB:CE67_Touchpad" = {
           tap = "enabled";
           tap_button_map = "lrm";
           natural_scroll = "disabled";
@@ -262,6 +296,7 @@
 
       startup = [
         { command = "swayidle -w timeout 900 'swaylock -f' timeout 1800 'systemctl suspend' before-sleep 'swaylock -f'"; }
+        { command = "sleep 2 && nm-applet --indicator"; }
       ];
     };
   };
@@ -274,13 +309,20 @@
       height = 30;
       modules-left = [ "sway/workspaces" "sway/mode" ];
       modules-center = [ "sway/window" ];
-      modules-right = [ "idle_inhibitor" "cpu" "memory" "network" "pulseaudio" "tray" "clock" ];
+      modules-right = [ "sway/language" "idle_inhibitor" "cpu" "memory" "network" "pulseaudio" "battery" "tray" "clock" ];
 
       "sway/workspaces" = {
         disable-scroll = true;
         format = "{name}";
       };
       "sway/mode" = { format = " {}"; };
+      "sway/language" = { format = " {short}"; };
+      battery = {
+        states = { warning = 30; critical = 15; };
+        format = "{icon} {capacity}%";
+        format-charging = "󰂄 {capacity}%";
+        format-icons = [ "󰁺" "󰁻" "󰁼" "󰁽" "󰁾" "󰁿" "󰂀" "󰂁" "󰂂" "󰁹" ];
+      };
       "sway/window" = { max-length = 50; };
       idle_inhibitor = {
         format = "{icon}";

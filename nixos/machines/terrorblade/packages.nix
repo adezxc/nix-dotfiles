@@ -1,4 +1,4 @@
-{pkgs, ...}: {
+{pkgs, lib, ...}: {
   environment.systemPackages = with pkgs; [
     vim
     git
@@ -6,6 +6,8 @@
     curl
     wget
     firefox
+
+    networkmanagerapplet
 
     openvpn3
     slack

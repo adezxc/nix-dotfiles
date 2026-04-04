@@ -19,6 +19,9 @@
 
     microvm.url = "github:microvm-nix/microvm.nix";
     microvm.inputs.nixpkgs.follows = "nixpkgs";
+
+    nixvim.url = "github:nix-community/nixvim";
+    nixvim.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs = {
@@ -28,6 +31,7 @@
     nixarr,
     agenix,
     microvm,
+    nixvim,
     ...
   } @ inputs: let
     inherit (self) outputs;
@@ -85,8 +89,10 @@
             home-manager.useUserPackages = true;
             home-manager.extraSpecialArgs = {inherit inputs outputs;};
             home-manager.users.adam.imports = [
+              nixvim.homeManagerModules.nixvim
               ./home-manager/home.nix
               ./home-manager/sway.nix
+              ./home-manager/neovim.nix
             ];
           }
         ];
