@@ -119,6 +119,40 @@
     }
   '';
 
+  # Swaylock configuration
+  xdg.configFile."swaylock/config".text = ''
+    color=2E3440
+
+    indicator-radius=120
+    indicator-thickness=12
+
+    ring-color=4C566A
+    key-hl-color=88C0D0
+
+    inside-color=2E3440
+    inside-clear-color=81A1C1
+    inside-ver-color=5E81AC
+    inside-wrong-color=BF616A
+
+    line-color=00000000
+
+    ring-clear-color=81A1C1
+    ring-ver-color=5E81AC
+    ring-wrong-color=BF616A
+
+    separator-color=00000000
+
+    text-color=ECEFF4
+    text-clear-color=2E3440
+    text-ver-color=2E3440
+    text-wrong-color=ECEFF4
+
+    bs-hl-color=BF616A
+
+    show-failed-attempts
+    indicator-caps-lock
+  '';
+
   home.packages = with pkgs; [
     wofi
     swaylock

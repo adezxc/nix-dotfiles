@@ -5,7 +5,9 @@
     htop
     curl
     wget
+    broot
     firefox
+
 
     networkmanagerapplet
 

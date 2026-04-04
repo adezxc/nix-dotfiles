@@ -20,6 +20,11 @@
         "*" = {
           addKeysToAgent = "yes";
         };
+        "claude-vm" = {
+          hostname = "192.168.83.10";
+          user = "adam";
+          extraOptions.StrictHostKeyChecking = "accept-new";
+        };
         "*.vinted.infra *.vinted.net" = {
           user = "ajasinski";
           addKeysToAgent = "yes";
@@ -100,12 +105,21 @@
         fi
 
         eval "$(kubectl completion zsh)"
-        source /home/adam/.config/broot/launcher/bash/br
 
         knife-a() { knife $@ --profile ams1 }
         knife-b() { knife $@ --profile bru1 }
         knife-d() { knife $@ --profile dus1 }
         knife-dedge() { knife $@ --profile dus2 }
+
+        vm-claude() {
+          local action="''${1:-ssh}"
+          case "$action" in
+            start) sudo systemctl start microvm@claude ;;
+            stop)  sudo systemctl stop microvm@claude ;;
+            ssh)   ssh claude-vm ;;
+            *)     echo "Usage: vm-claude [start|stop|ssh]" ;;
+          esac
+        }
 
         vpn() {
           local active_session=$(openvpn3 sessions-list | grep "Path:" | awk '{print $2}')
