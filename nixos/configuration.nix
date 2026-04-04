@@ -10,8 +10,8 @@
   imports = [
   ];
 
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
+  # Note: bootloader config is now set per-machine in nixos/machines/<hostname>/
+  # This allows different machines to use different bootloaders (grub vs systemd-boot)
 
   nixpkgs.config.allowUnfree = true;
   nixpkgs.config.permittedInsecurePackages = [
@@ -88,5 +88,6 @@
   networking.firewall.allowedUDPPorts = [22];
   networking.firewall.enable = true;
 
-  system.stateVersion = "24.05";
+  # Note: system.stateVersion is set per-machine in nixos/machines/<hostname>/
+  # This allows each machine to have its own stateVersion based on install date
 }

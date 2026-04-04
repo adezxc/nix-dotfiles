@@ -7,6 +7,10 @@
   flakeDir,
   ...
 }: {
+  # Bootloader
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
+
   # You can import other NixOS modules here
   imports = [
     ./hardware-configuration.nix
@@ -34,4 +38,6 @@
       "tailscale0"
     ];
   };
+
+  system.stateVersion = "24.05";
 }

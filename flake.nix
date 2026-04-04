@@ -10,12 +10,15 @@
     # Also see the 'unstable-packages' overlay at 'overlays/default.nix'.
 
     # Home manager
-    home-manager.url = "github:nix-community/home-manager/release-25.05";
+    home-manager.url = "github:nix-community/home-manager/master";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
     nixarr.url = "github:rasmus-kirk/nixarr";
 
     agenix.url = "github:ryantm/agenix";
+
+    microvm.url = "github:microvm-nix/microvm.nix";
+    microvm.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs = {
@@ -24,6 +27,7 @@
     home-manager,
     nixarr,
     agenix,
+    microvm,
     ...
   } @ inputs: let
     inherit (self) outputs;
@@ -69,6 +73,25 @@
           ./nixos/machines/antimage/antimage.nix
         ];
       };
+
+      terrorblade = nixpkgs.lib.nixosSystem {
+        specialArgs = {inherit inputs outputs microvm;};
+        modules = [
+          ./nixos/configuration.nix
+          ./nixos/machines/terrorblade/terrorblade.nix
+          microvm.nixosModules.host
+          home-manager.nixosModules.home-manager
+          {
+            home-manager.useGlobalPkgs = true;
+            home-manager.useUserPackages = true;
+            home-manager.extraSpecialArgs = {inherit inputs outputs;};
+            home-manager.users.adam.imports = [
+              ./home-manager/home.nix
+              ./home-manager/sway.nix
+            ];
+          }
+        ];
+      };
     };
 
     homeConfigurations = {
@@ -77,6 +100,8 @@
         extraSpecialArgs = {inherit inputs outputs;};
         modules = [
           ./home-manager/home.nix
+          ./home-manager/terminal.nix
+          ./home-manager/beets.nix
         ];
       };
 
