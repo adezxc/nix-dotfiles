@@ -30,6 +30,19 @@
       };
     };
 
+    jujutsu = {
+      enable = true;
+      settings = {
+        user = {
+          name = "Adam Jasinski";
+          email = "adam.jasinski@vinted.com";
+        };
+        templates = {
+          commit_trailers = "\n  format_signed_off_by_trailer(self)\n";
+        };
+      };
+    };
+
     git = {
       enable = true;
       signing.format = null;

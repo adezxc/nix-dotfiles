@@ -189,7 +189,7 @@
         "1:1:AT_Translated_Set_2_keyboard" = {
           xkb_layout = "pl,lt,ru";
           xkb_variant = ",us,phonetic";
-          xkb_options = "grp:alt_shift_toggle";
+          xkb_options = "grp:alt_shift_toggle,caps:swapescape";
         };
         "1739:52839:SYNA8018:00_06CB:CE67_Touchpad" = {
           tap = "enabled";

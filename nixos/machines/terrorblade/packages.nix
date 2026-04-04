@@ -9,6 +9,8 @@
 
     networkmanagerapplet
 
+    jujutsu
+
     openvpn3
     slack
     spotify
