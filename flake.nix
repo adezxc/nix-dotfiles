@@ -89,7 +89,7 @@
             home-manager.useUserPackages = true;
             home-manager.extraSpecialArgs = {inherit inputs outputs;};
             home-manager.users.adam.imports = [
-              nixvim.homeManagerModules.nixvim
+              nixvim.homeModules.nixvim
               ./home-manager/home.nix
               ./home-manager/sway.nix
               ./home-manager/neovim.nix

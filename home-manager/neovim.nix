@@ -88,6 +88,8 @@
       luasnip.enable = true;
       cmp_luasnip.enable = true;
 
+      web-devicons.enable = true;
+
       # Telescope
       telescope = {
         enable = true;
