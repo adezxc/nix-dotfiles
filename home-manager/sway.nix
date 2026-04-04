@@ -142,7 +142,7 @@
     enable = true;
     config = {
       modifier = "Mod4";
-      terminal = "foot";
+      terminal = "${pkgs.ghostty}/bin/ghostty";
       menu = "wofi --show drun";
 
       gaps.inner = 10;
@@ -160,14 +160,14 @@
         "type:touchpad" = {
           tap = "enabled";
           tap_button_map = "lrm";
-          natural_scroll = "enabled";
+          natural_scroll = "disabled";
         };
       };
 
       keybindings = let
         mod = "Mod4";
       in {
-        "${mod}+Return" = "exec foot";
+        "${mod}+Return" = "exec ${pkgs.ghostty}/bin/ghostty";
         "${mod}+Shift+q" = "kill";
         "${mod}+d" = "exec wofi --show drun";
         "${mod}+Shift+c" = "reload";

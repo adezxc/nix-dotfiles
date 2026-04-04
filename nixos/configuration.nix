@@ -77,7 +77,7 @@
 
   programs.gnupg.agent = {
     enable = true;
-    enableSSHSupport = true;
+    enableSSHSupport = false;
   };
 
   systemd.services.NetworkManager-wait-online.enable = false;

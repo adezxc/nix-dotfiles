@@ -9,6 +9,7 @@
   imports = [
     ./hardware-configuration.nix
     ./microvm-host.nix
+    ./packages.nix
   ];
 
   # Bootloader
@@ -85,15 +86,6 @@
 
   security.sudo.wheelNeedsPassword = false;
   security.polkit.enable = true;
-
-  environment.systemPackages = with pkgs; [
-    vim
-    git
-    htop
-    curl
-    wget
-    firefox
-  ];
 
   system.stateVersion = "25.11";
 }

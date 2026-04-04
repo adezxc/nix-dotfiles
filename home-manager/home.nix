@@ -34,6 +34,8 @@
 
   systemd.user.startServices = "sd-switch";
 
+  nixpkgs.config.allowUnfree = true;
+
   home.enableNixpkgsReleaseCheck = false;
   home.stateVersion = "23.05";
 }
