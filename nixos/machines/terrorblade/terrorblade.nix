@@ -123,6 +123,8 @@
     };
   };
 
+  programs.nix-ld.enable = true;
+
   security.sudo.wheelNeedsPassword = false;
   security.polkit.enable = true;
 

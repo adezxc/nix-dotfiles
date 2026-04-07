@@ -18,6 +18,8 @@
     slack
     spotify
     
+    pandoc
+
     kubectl
     k9s
     kubectx

@@ -170,6 +170,7 @@
     ghostty
     blueman
     solaar
+    uv
   ];
 
   wayland.windowManager.sway = {
@@ -410,6 +411,20 @@
       };
     };
     style = builtins.readFile ./waybar-style.css;
+  };
+
+  # Open all xdg-open links in Firefox Work profile.
+  # Desktop entries are managed manually in ~/.local/share/applications/ — do not
+  # add xdg.desktopEntries.firefox-work here or home-manager will overwrite them.
+  # For conditional routing (some domains → Personal profile), ask Claude for the router setup.
+  xdg.mimeApps = {
+    enable = true;
+    defaultApplications = {
+      "x-scheme-handler/http" = [ "firefox-work.desktop" ];
+      "x-scheme-handler/https" = [ "firefox-work.desktop" ];
+      "text/html" = [ "firefox-work.desktop" ];
+      "application/xhtml+xml" = [ "firefox-work.desktop" ];
+    };
   };
 
   services.mako = {
