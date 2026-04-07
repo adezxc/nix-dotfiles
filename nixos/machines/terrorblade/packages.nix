@@ -7,6 +7,7 @@
     wget
     broot
     firefox
+    chromium
 
 
     networkmanagerapplet

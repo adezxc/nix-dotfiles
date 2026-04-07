@@ -84,7 +84,22 @@
     noto-fonts-color-emoji
   ];
 
+  programs.chromium = {
+    enable = true;
+    extraOpts = {
+      "OzonePlatform" = "wayland";
+    };
+  };
+
   hardware.graphics.enable = true;
+
+  hardware.logitech.wireless.enable = true;
+
+  hardware.bluetooth = {
+    enable = true;
+    powerOnBoot = true;
+  };
+  services.blueman.enable = true;
 
   services.tlp = {
     enable = true;

@@ -52,6 +52,7 @@ window#waybar {
 #memory,
 #temperature,
 #network,
+#bluetooth,
 #pulseaudio,
 #battery,
 #language,
@@ -69,6 +70,9 @@ window#waybar {
 #memory { color: #81A1C1; }
 #network { color: #A3BE8C; }
 #network.disconnected { color: #2E3440; background-color: #BF616A; }
+#bluetooth { color: #88C0D0; }
+#bluetooth.connected { color: #5E81AC; }
+#bluetooth.disabled { color: #4C566A; }
 #pulseaudio { color: #B48EAD; }
 #pulseaudio.muted { color: #4C566A; }
 #language { color: #EBCB8B; }

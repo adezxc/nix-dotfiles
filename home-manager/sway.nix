@@ -158,18 +158,18 @@
     swaylock
     swayidle
     swaybg
-    kanshi
     grim
     slurp
     swappy
     wl-clipboard
-    mako
     brightnessctl
     playerctl
     pavucontrol
     pulseaudio
     foot
     ghostty
+    blueman
+    solaar
   ];
 
   wayland.windowManager.sway = {
@@ -224,6 +224,16 @@
           xkb_layout = "pl,lt,ru";
           xkb_variant = ",us,phonetic";
           xkb_options = "grp:alt_shift_toggle,caps:swapescape";
+        };
+        "13364:643:Keychron_Keychron_K8_Pro" = {
+          xkb_layout = "pl,lt,ru";
+          xkb_variant = ",us,phonetic";
+          xkb_options = "grp:alt_shift_toggle,caps:swapescape";
+        };
+        "10730:864:Kinesis_Kinesis_Adv360" = {
+          xkb_layout = "pl,lt,ru";
+          xkb_variant = ",us,phonetic";
+          xkb_options = "grp:ctrls_toggle";
         };
         "1739:52839:SYNA8018:00_06CB:CE67_Touchpad" = {
           tap = "enabled";
@@ -331,6 +341,8 @@
       startup = [
         { command = "swayidle -w timeout 900 'swaylock -f' timeout 1800 'systemctl suspend' before-sleep 'swaylock -f'"; }
         { command = "sleep 2 && nm-applet --indicator"; }
+        { command = "sleep 2 && blueman-applet"; }
+        { command = "sleep 2 && solaar -w hide"; }
       ];
     };
   };
@@ -343,7 +355,7 @@
       height = 30;
       modules-left = [ "sway/workspaces" "sway/mode" ];
       modules-center = [ "sway/window" ];
-      modules-right = [ "sway/language" "idle_inhibitor" "cpu" "memory" "network" "pulseaudio" "battery" "tray" "clock" ];
+      modules-right = [ "sway/language" "idle_inhibitor" "cpu" "memory" "network" "bluetooth" "pulseaudio" "battery" "tray" "clock" ];
 
       "sway/workspaces" = {
         disable-scroll = true;
@@ -367,6 +379,15 @@
       };
       cpu = { format = "󰻠 {usage}%"; interval = 5; };
       memory = { format = "󰍛 {}%"; interval = 10; };
+      bluetooth = {
+        format = "󰂯 {status}";
+        format-connected = "󰂱 {device_alias}";
+        format-connected-battery = "󰂱 {device_alias} {device_battery_percentage}%";
+        tooltip-format = "{controller_alias}\t{controller_address}";
+        tooltip-format-connected = "{controller_alias}\t{controller_address}\n\n{device_enumerate}";
+        tooltip-format-enumerate-connected = "{device_alias}\t{device_address}";
+        on-click = "blueman-manager";
+      };
       network = {
         format-ethernet = "󰈀 {ifname}";
         format-disconnected = "󰤭 Disconnected";
@@ -389,5 +410,114 @@
       };
     };
     style = builtins.readFile ./waybar-style.css;
+  };
+
+  services.mako = {
+    enable = true;
+    defaultTimeout = 5000;
+    ignoreTimeout = false;
+  };
+
+  services.kanshi = {
+    enable = true;
+    settings = [
+      {
+        output = {
+          criteria = "LG Electronics LG Ultra HD 0x00092091";
+          mode = "3840x2160@59.997Hz";
+          position = "0,1086";
+          scale = 1.5;
+        };
+      }
+      {
+        output = {
+          criteria = "Lenovo Group Limited P27h-20 V905YGRW";
+          mode = "2560x1440@59.951Hz";
+          position = "0,0";
+        };
+      }
+      {
+        output = {
+          criteria = "Dell Inc. DELL S2721DGF 77SGR83";
+          mode = "2560x1440@143.912Hz";
+          scale = 1.0;
+          position = "0,593";
+          transform = "normal";
+        };
+      }
+      {
+        output = {
+          criteria = "Dell Inc. DELL U2722DE BH169H3";
+          mode = "2560x1440";
+          scale = 1.0;
+          position = "2560,0";
+          transform = "90";
+        };
+      }
+      {
+        output.criteria = "Lenovo Group Limited 0x403D Unknown";
+      }
+      {
+        profile = {
+          name = "laptop";
+          outputs = [{
+            criteria = "Lenovo Group Limited 0x403D Unknown";
+            status = "enable";
+            scale = 1.0;
+          }];
+        };
+      }
+      {
+        profile = {
+          name = "home";
+          outputs = [
+            { criteria = "Lenovo Group Limited 0x403D Unknown"; status = "disable"; }
+            { criteria = "Dell Inc. DELL S2721DGF 77SGR83"; status = "enable"; }
+            { criteria = "Dell Inc. DELL U2722DE BH169H3"; status = "enable"; }
+          ];
+          exec = let sm = "${pkgs.sway}/bin/swaymsg"; in [
+            "${sm} workspace 1"
+            "${sm} move workspace to HDMI-A-1 number 1"
+            "${sm} workspace 2"
+            "${sm} move workspace to HDMI-A-1 number 2"
+            "${sm} workspace 3"
+            "${sm} move workspace to HDMI-A-1 number 3"
+            "${sm} workspace 4"
+            "${sm} move workspace to HDMI-A-1 number 4"
+            "${sm} workspace 5"
+            "${sm} move workspace to HDMI-A-1 number 5"
+            "${sm} workspace 6"
+            "${sm} move workspace to DP-2 number 6"
+            "${sm} workspace 7"
+            "${sm} move workspace to DP-2 number 7"
+            "${sm} workspace 8"
+            "${sm} move workspace to DP-2 number 8"
+            "${sm} workspace 9"
+            "${sm} move workspace to DP-2 number 9"
+            "${sm} workspace 10"
+            "${sm} move workspace to DP-2 number 10"
+            "${sm} workspace number 1 output HDMI-A-1"
+            "${sm} workspace number 2 output HDMI-A-1"
+            "${sm} workspace number 3 output HDMI-A-1"
+            "${sm} workspace number 4 output HDMI-A-1"
+            "${sm} workspace number 5 output HDMI-A-1"
+            "${sm} workspace number 6 output DP-2"
+            "${sm} workspace number 7 output DP-2"
+            "${sm} workspace number 8 output DP-2"
+            "${sm} workspace number 9 output DP-2"
+            "${sm} workspace number 10 output DP-2"
+          ];
+        };
+      }
+      {
+        profile = {
+          name = "work2";
+          outputs = [
+            { criteria = "Lenovo Group Limited 0x403D Unknown"; status = "disable"; }
+            { criteria = "Lenovo Group Limited P27h-20 V905YGRW"; status = "enable"; }
+          ];
+        };
+      }
+    ];
   };
 }
