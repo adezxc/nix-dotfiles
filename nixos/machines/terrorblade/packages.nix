@@ -23,5 +23,7 @@
     kubectl
     k9s
     kubectx
+
+    claude-code-bin
   ];
 }
