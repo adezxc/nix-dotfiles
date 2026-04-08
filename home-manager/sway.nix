@@ -236,6 +236,11 @@
           xkb_variant = ",us,phonetic";
           xkb_options = "grp:ctrls_toggle";
         };
+        "7504:24926:Adv360_Pro_Keyboard" = {
+          xkb_layout = "pl,lt,ru";
+          xkb_variant = ",us,phonetic";
+          xkb_options = "grp:ctrls_toggle";
+        };
         "1739:52839:SYNA8018:00_06CB:CE67_Touchpad" = {
           tap = "enabled";
           tap_button_map = "lrm";
