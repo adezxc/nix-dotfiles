@@ -49,7 +49,7 @@
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILB1AzLhbytJCN8V6o/BxnJ7hka4J8GoZWRR9lwvELKr adam@alchemist"
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK1KUerwqjiAYOBOX9EsPjs0WUi+I1M5Qi0CHzo3ZmZq adam@terrorblade"
       ];
-      extraGroups = ["wheel" "media"];
+      extraGroups = ["wheel" "media" "docker"];
       shell = pkgs.zsh;
     };
   };

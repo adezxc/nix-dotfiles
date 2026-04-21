@@ -25,6 +25,8 @@
   boot.supportedFilesystems = [ "btrfs" ];
   hardware.enableAllFirmware = true;
 
+  virtualisation.docker.enable = true;
+
   networking.hostName = "terrorblade";
   networking.networkmanager.enable = true;
 
@@ -104,7 +106,7 @@
   services.tlp = {
     enable = true;
     settings = {
-      START_CHARGE_THRESH_BAT0 = 20;
+      START_CHARGE_THRESH_BAT0 = 50;
       STOP_CHARGE_THRESH_BAT0 = 80;
 
       # WiFi powersave off (unreliable, causes latency spikes)
@@ -124,6 +126,11 @@
   };
 
   programs.nix-ld.enable = true;
+
+  security.pam.loginLimits = [
+    { domain = "*"; type = "soft"; item = "nofile"; value = "655350"; }
+    { domain = "*"; type = "hard"; item = "nofile"; value = "655350"; }
+  ];
 
   security.sudo.wheelNeedsPassword = false;
   security.polkit.enable = true;

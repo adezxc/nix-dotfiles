@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, config, ... }:
 
 {
   # Ghostty terminal configuration
@@ -387,8 +387,8 @@
       memory = { format = "󰍛 {}%"; interval = 10; };
       bluetooth = {
         format = "󰂯 {status}";
-        format-connected = "󰂱 {device_alias}";
-        format-connected-battery = "󰂱 {device_alias} {device_battery_percentage}%";
+        format-connected = "󰂱 {status}";
+        format-connected-battery = "󰂱 {status}";
         tooltip-format = "{controller_alias}\t{controller_address}";
         tooltip-format-connected = "{controller_alias}\t{controller_address}\n\n{device_enumerate}";
         tooltip-format-enumerate-connected = "{device_alias}\t{device_address}";
@@ -418,10 +418,36 @@
     style = builtins.readFile ./waybar-style.css;
   };
 
-  # Open all xdg-open links in Firefox Work profile.
-  # Desktop entries are managed manually in ~/.local/share/applications/ — do not
-  # add xdg.desktopEntries.firefox-work here or home-manager will overwrite them.
-  # For conditional routing (some domains → Personal profile), ask Claude for the router setup.
+  xdg.desktopEntries.firefox-work = {
+    name = "Firefox Work";
+    genericName = "Web Browser";
+    exec = "firefox --profile ${config.home.homeDirectory}/.mozilla/firefox/98rkkzfh.Work-new --name firefox-work %U";
+    icon = "firefox";
+    terminal = false;
+    categories = [ "Network" "WebBrowser" ];
+    mimeType = [
+      "text/html"
+      "text/xml"
+      "application/xhtml+xml"
+      "application/vnd.mozilla.xul+xml"
+      "x-scheme-handler/http"
+      "x-scheme-handler/https"
+    ];
+    settings = {
+      StartupWMClass = "firefox-work";
+    };
+    actions = {
+      new-window = {
+        name = "New Window";
+        exec = "firefox --profile ${config.home.homeDirectory}/.mozilla/firefox/98rkkzfh.Work-new --new-window %U";
+      };
+      new-private-window = {
+        name = "New Private Window";
+        exec = "firefox --profile ${config.home.homeDirectory}/.mozilla/firefox/98rkkzfh.Work-new --private-window %U";
+      };
+    };
+  };
+
   xdg.mimeApps = {
     enable = true;
     defaultApplications = {
@@ -493,7 +519,7 @@
           outputs = [
             { criteria = "Lenovo Group Limited 0x403D Unknown"; status = "disable"; }
             { criteria = "Dell Inc. DELL S2721DGF 77SGR83"; status = "enable"; }
-            { criteria = "Dell Inc. DELL U2722DE BH169H3"; status = "enable"; }
+            { criteria = "Dell Inc. DELL U2722DE BH169H3"; status = "disable"; }
           ];
           exec = let sm = "${pkgs.sway}/bin/swaymsg"; in [
             "${sm} workspace 1"

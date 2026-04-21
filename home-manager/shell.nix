@@ -75,7 +75,6 @@
         update = "sudo nixos-rebuild switch";
         k = "kubectl";
         today = "date '+%Y-%m-%d'";
-        ssh = "TERM=xterm-256color /usr/bin/ssh";
       };
 
       envExtra = ''

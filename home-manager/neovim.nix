@@ -3,7 +3,10 @@
     enable = true;
     defaultEditor = true;
 
-    colorschemes.nord.enable = true;
+    colorschemes.catppuccin = {
+      enable = true;
+      settings.flavour = "latte";
+    };
 
     globals.mapleader = " ";
 
@@ -19,6 +22,12 @@
       signcolumn = "yes";
       updatetime = 50;
       termguicolors = true;
+      guicursor = "n-v-c-sm:block-Cursor,i-ci-ve:ver25-Cursor,r-cr-o:hor20-Cursor";
+    };
+
+    highlightOverride.Cursor = {
+      fg = "#ffffff";
+      bg = "#e64500";
     };
 
     plugins = {
@@ -118,7 +127,7 @@
       # Status line
       lualine = {
         enable = true;
-        settings.options.theme = "nord";
+        settings.options.theme = "catppuccin";
       };
 
       # Comment toggling

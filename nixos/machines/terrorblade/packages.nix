@@ -25,5 +25,6 @@
     kubectx
 
     claude-code-bin
+    codex
   ];
 }
