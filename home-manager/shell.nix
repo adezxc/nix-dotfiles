@@ -51,6 +51,11 @@
     git = {
       enable = true;
       signing.format = null;
+      ignores = [
+        "CLAUDE.md"
+        ".codex"
+        ".claude"
+      ];
       settings = {
         alias.s = "status";
         user.email = "adam@jasinski.lt";

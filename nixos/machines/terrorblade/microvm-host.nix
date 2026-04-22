@@ -49,6 +49,7 @@ in
   };
 
   # Define a microVM for Claude Code
+  microvm.autostart = lib.mkForce [];
   microvm.vms.claude = {
     specialArgs = { inherit microvm; };
     config = { config, pkgs, ... }: {
