@@ -25,16 +25,16 @@
   boot.supportedFilesystems = [ "btrfs" ];
   hardware.enableAllFirmware = true;
 
-  boot.kernelPatches = [
-    {
-      name = "ath11k-null-peerid-workaround";
-      patch = pkgs.fetchpatch {
-        name = "ath11k-null-peerid-workaround.patch";
-        url = "https://lore.kernel.org/ath11k/20260415-ath11k-null-peerid-workaround-v2-1-2abae3bbac16@collabora.com/raw";
-        hash = "sha256-CajLTraJzhP+e3TaMjS9vqfcZvAUuQCIhg9k51J9+DY=";
-      };
-    }
-  ];
+  #boot.kernelPatches = [
+  #  {
+  #    name = "ath11k-null-peerid-workaround";
+  #    patch = pkgs.fetchpatch {
+  #      name = "ath11k-null-peerid-workaround.patch";
+  #      url = "https://lore.kernel.org/ath11k/20260415-ath11k-null-peerid-workaround-v2-1-2abae3bbac16@collabora.com/raw";
+  #      hash = "sha256-CajLTraJzhP+e3TaMjS9vqfcZvAUuQCIhg9k51J9+DY=";
+  #    };
+  #  }
+  #];
 
   virtualisation.docker.enable = true;
 

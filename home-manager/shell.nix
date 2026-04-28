@@ -55,6 +55,8 @@
         "CLAUDE.md"
         ".codex"
         ".claude"
+        ".envrc"
+        ".direnv"
       ];
       settings = {
         alias.s = "status";
@@ -185,6 +187,12 @@
     zoxide = {
       enable = true;
       enableZshIntegration = true;
+    };
+
+    direnv = {
+      enable = true;
+      enableZshIntegration = true;
+      nix-direnv.enable = true;
     };
   };
 }

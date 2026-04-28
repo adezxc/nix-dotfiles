@@ -44,6 +44,8 @@
           json
           yaml
           toml
+          typescript
+          capnp
           markdown
           python
         ];
@@ -85,7 +87,7 @@
           mapping = {
             "<C-Space>" = "cmp.mapping.complete()";
             "<C-e>" = "cmp.mapping.abort()";
-            "<CR>" = "cmp.mapping.confirm({ select = true })";
+            "<C-y>" = "cmp.mapping.confirm({ select = true })";
             "<Tab>" = "cmp.mapping(cmp.mapping.select_next_item(), {'i', 's'})";
             "<S-Tab>" = "cmp.mapping(cmp.mapping.select_prev_item(), {'i', 's'})";
           };
@@ -127,7 +129,6 @@
       # Status line
       lualine = {
         enable = true;
-        settings.options.theme = "catppuccin";
       };
 
       # Comment toggling
@@ -141,6 +142,30 @@
 
       # Indent guides
       indent-blankline.enable = true;
+
+      # Formatter
+      conform-nvim = {
+        enable = true;
+        settings = {
+          formatters_by_ft = {
+            go = [ "goimports" "gofmt" ];
+            nix = [ "alejandra" ];
+          };
+          format_on_save = {
+            timeout_ms = 1000;
+            lsp_fallback = true;
+          };
+        };
+      };
     };
+
+    keymaps = [
+      {
+        mode = "n";
+        key = "<leader>F";
+        action.__raw = "function() require('conform').format({ lsp_fallback = true }) end";
+        options.desc = "Format buffer";
+      }
+    ];
   };
 }
