@@ -175,9 +175,6 @@
         format = lib.concatStrings [
           "$username"
           "$directory"
-          "$git_branch"
-          "$git_commit"
-          "$git_status"
           "$status"
           "$shell"
           "$character"
