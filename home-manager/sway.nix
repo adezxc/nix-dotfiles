@@ -501,6 +501,15 @@
         };
       }
       {
+        output = {
+          criteria = "Samsung Electric Company LS34A650U HNTR302475";
+          mode = "3440x1440@99.982";
+          scale = 1.0;
+          position = "0,0";
+        };
+      }
+
+      {
         output.criteria = "Lenovo Group Limited 0x403D Unknown";
       }
       {
@@ -560,7 +569,7 @@
           name = "work2";
           outputs = [
             { criteria = "Lenovo Group Limited 0x403D Unknown"; status = "disable"; }
-            { criteria = "Lenovo Group Limited P27h-20 V905YGRW"; status = "enable"; }
+            { criteria = "Samsung Electric Company LS34A650U HNTR302475"; status = "enable"; }
           ];
         };
       }

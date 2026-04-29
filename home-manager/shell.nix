@@ -19,6 +19,7 @@
       matchBlocks = {
         "*" = {
           addKeysToAgent = "yes";
+          extraOptions.SetEnv = "TERM=xterm-256color";
         };
         "claude-vm" = {
           hostname = "192.168.83.10";
@@ -69,6 +70,8 @@
           contents.user.email = "adam.jasinski@vinted.com";
         }
       ];
+
+      maintenance.enable = true;
     };
 
     zsh = {
@@ -116,6 +119,7 @@
         knife-b() { knife $@ --profile bru1 }
         knife-d() { knife $@ --profile dus1 }
         knife-dedge() { knife $@ --profile dus2 }
+        knife-dal() { knife $@ --profile dal1 }
 
         vm-claude() {
           local action="''${1:-ssh}"

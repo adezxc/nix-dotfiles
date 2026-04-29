@@ -104,6 +104,9 @@
     };
   };
 
+  # Use the NixOS Steam module so 32-bit GL/Vulkan drivers are available.
+  programs.steam.enable = true;
+
   hardware.graphics.enable = true;
 
   hardware.logitech.wireless.enable = true;
@@ -113,6 +116,8 @@
     powerOnBoot = true;
   };
   services.blueman.enable = true;
+
+  boot.extraModprobeConfig = "options thinkpad_acpi fan_control=1";
 
   services.tlp = {
     enable = true;

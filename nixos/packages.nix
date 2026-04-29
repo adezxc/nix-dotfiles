@@ -33,6 +33,7 @@ with pkgs; [
   podman
 
   go
+  gcc
 
   hugo
 ]
