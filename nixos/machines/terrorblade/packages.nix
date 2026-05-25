@@ -28,6 +28,8 @@
     kubectl
     k9s
     kubectx
+    kubelogin
+    kubelogin-oidc
 
     wezterm
 
@@ -35,5 +37,9 @@
 
     claude-code-bin
     codex
+
+    obs-studio
+    playwright
+    playwright-driver
   ];
 }

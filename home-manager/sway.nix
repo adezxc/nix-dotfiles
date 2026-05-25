@@ -229,7 +229,7 @@
         "13364:643:Keychron_Keychron_K8_Pro" = {
           xkb_layout = "pl,lt,ru";
           xkb_variant = ",us,phonetic";
-          xkb_options = "grp:alt_shift_toggle,caps:swapescape";
+          xkb_options = "grp:alt_shift_toggle";
         };
         "10730:864:Kinesis_Kinesis_Adv360" = {
           xkb_layout = "pl,lt,ru";
