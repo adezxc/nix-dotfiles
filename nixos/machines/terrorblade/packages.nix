@@ -9,13 +9,15 @@
     firefox
     chromium
 
+    comma
+
     networkmanagerapplet
 
     jujutsu
+    ruby
 
     easyeffects
     lsp-plugins
-
 
     openvpn3
     slack
@@ -26,6 +28,7 @@
 
     s3cmd
     kubectl
+    istioctl
     k9s
     kubectx
     kubelogin
@@ -35,8 +38,9 @@
 
     redis
 
-    claude-code-bin
+    claude-code
     codex
+    pi-coding-agent
 
     obs-studio
     playwright

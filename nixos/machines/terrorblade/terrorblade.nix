@@ -22,7 +22,7 @@
   boot.loader.efi.canTouchEfiVariables = true;
 
   boot.kernelPackages = pkgs.linuxPackages_latest;
-  boot.supportedFilesystems = [ "btrfs" ];
+  boot.supportedFilesystems = ["btrfs"];
   hardware.enableAllFirmware = true;
 
   #boot.kernelPatches = [
@@ -86,7 +86,7 @@
   xdg.portal = {
     enable = true;
     wlr.enable = true;
-    extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+    extraPortals = [pkgs.xdg-desktop-portal-gtk];
   };
 
   # Fonts
@@ -144,8 +144,18 @@
   programs.nix-ld.enable = true;
 
   security.pam.loginLimits = [
-    { domain = "*"; type = "soft"; item = "nofile"; value = "655350"; }
-    { domain = "*"; type = "hard"; item = "nofile"; value = "655350"; }
+    {
+      domain = "*";
+      type = "soft";
+      item = "nofile";
+      value = "655350";
+    }
+    {
+      domain = "*";
+      type = "hard";
+      item = "nofile";
+      value = "655350";
+    }
   ];
 
   security.sudo.wheelNeedsPassword = false;

@@ -4,6 +4,7 @@ with pkgs; [
   unzip
   atool
   zip
+  lsof
 
   killall
 

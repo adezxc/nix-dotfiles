@@ -22,6 +22,10 @@
 
     nixvim.url = "github:nix-community/nixvim";
     nixvim.inputs.nixpkgs.follows = "nixpkgs";
+
+    nix-index-database.url = "github:nix-community/nix-index-database";
+    nix-index-database.inputs.nixpkgs.follows = "nixpkgs";
+
   };
 
   outputs = {
@@ -32,6 +36,7 @@
     agenix,
     microvm,
     nixvim,
+    nix-index-database,
     ...
   } @ inputs: let
     inherit (self) outputs;
@@ -44,7 +49,20 @@
     forAllSystems = nixpkgs.lib.genAttrs systems;
   in {
     packages = forAllSystems (system: import ./pkgs nixpkgs.legacyPackages.${system});
-    formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.alejandra);
+    formatter = forAllSystems (system: let
+      pkgs = nixpkgs.legacyPackages.${system};
+    in
+      pkgs.writeShellApplication {
+        name = "alejandra-format";
+        runtimeInputs = [pkgs.alejandra];
+        text = ''
+          if [ "$#" -eq 0 ]; then
+            set -- .
+          fi
+
+          exec alejandra "$@"
+        '';
+      });
 
     # Your custom packages and modifications, exported as overlays
     overlays = import ./overlays {inherit inputs;};
@@ -83,6 +101,7 @@
         modules = [
           ./nixos/configuration.nix
           ./nixos/machines/terrorblade/terrorblade.nix
+          nix-index-database.nixosModules.default
           microvm.nixosModules.host
           home-manager.nixosModules.home-manager
           {

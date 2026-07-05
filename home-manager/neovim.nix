@@ -1,7 +1,8 @@
-{ pkgs, ... }: {
+{ inputs, pkgs, ... }: {
   programs.nixvim = {
     enable = true;
     defaultEditor = true;
+    nixpkgs.source = inputs.nixpkgs;
 
     colorschemes.catppuccin = {
       enable = true;

@@ -226,6 +226,11 @@
           xkb_variant = ",us,phonetic";
           xkb_options = "grp:alt_shift_toggle,caps:swapescape";
         };
+        "13364:643:Keychron_Keychron_K8_Pro_Keyboard" = {
+          xkb_layout = "pl,lt,ru";
+          xkb_variant = ",us,phonetic";
+          xkb_options = "grp:alt_shift_toggle";
+        };
         "13364:643:Keychron_Keychron_K8_Pro" = {
           xkb_layout = "pl,lt,ru";
           xkb_variant = ",us,phonetic";
@@ -460,8 +465,10 @@
 
   services.mako = {
     enable = true;
-    defaultTimeout = 5000;
-    ignoreTimeout = false;
+    settings = {
+      default-timeout = 5000;
+      ignore-timeout = false;
+    };
   };
 
   services.kanshi = {

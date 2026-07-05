@@ -16,22 +16,24 @@
     ssh = {
       enable = true;
       enableDefaultConfig = false;
-      matchBlocks = {
+      settings = {
         "*" = {
-          addKeysToAgent = "yes";
-          extraOptions.SetEnv = "TERM=xterm-256color";
+          AddKeysToAgent = "yes";
+          SetEnv.TERM = "xterm-256color";
         };
-        "claude-vm" = {
-          hostname = "192.168.83.10";
-          user = "adam";
-          extraOptions.StrictHostKeyChecking = "accept-new";
+        "pi-coding-agent" = {
+          HostName = "192.168.83.10";
+          User = "adam";
+          IdentityFile = "~/.ssh/id_ed25519";
+          StrictHostKeyChecking = "no";
+          UserKnownHostsFile = "/dev/null";
         };
         "*.vinted.infra *.vinted.net" = {
-          user = "ajasinski";
-          addKeysToAgent = "yes";
-          forwardAgent = true;
-          identityFile = "~/.ssh/vinted_ed25519";
-          extraOptions.SetEnv = ''LC_CTYPE="en_US.UTF-8"'';
+          User = "ajasinski";
+          AddKeysToAgent = "yes";
+          ForwardAgent = true;
+          IdentityFile = "~/.ssh/vinted_ed25519";
+          SetEnv.LC_CTYPE = "en_US.UTF-8";
         };
       };
     };
@@ -120,16 +122,6 @@
         knife-d() { knife $@ --profile dus1 }
         knife-dedge() { knife $@ --profile dus2 }
         knife-dal() { knife $@ --profile dal1 }
-
-        vm-claude() {
-          local action="''${1:-ssh}"
-          case "$action" in
-            start) sudo systemctl start microvm@claude ;;
-            stop)  sudo systemctl stop microvm@claude ;;
-            ssh)   ssh claude-vm ;;
-            *)     echo "Usage: vm-claude [start|stop|ssh]" ;;
-          esac
-        }
 
         vpn() {
           local active_session=$(openvpn3 sessions-list | grep "Path:" | awk '{print $2}')
