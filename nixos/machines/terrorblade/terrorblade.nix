@@ -8,7 +8,6 @@
 }: {
   imports = [
     ./hardware-configuration.nix
-    ./microvm-host.nix
     ./packages.nix
   ];
 
