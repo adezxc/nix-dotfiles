@@ -24,7 +24,7 @@
     openvpn3
     slack
     spotify
-    vesktop
+    discord
     
     pandoc
 
