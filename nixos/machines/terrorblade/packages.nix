@@ -12,6 +12,8 @@
     comma
 
     networkmanagerapplet
+    
+    nodejs_latest
 
     jujutsu
     ruby
