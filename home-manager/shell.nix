@@ -65,6 +65,7 @@
         alias.s = "status";
         user.email = "adam@jasinski.lt";
         user.name = "Adam Jasinski";
+        push.autoSetupRemote = true;
       };
       includes = [
         {
