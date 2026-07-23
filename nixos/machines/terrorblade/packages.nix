@@ -1,5 +1,10 @@
-{pkgs, lib, ...}: {
+{
+  pkgs,
+  lib,
+  ...
+}: {
   environment.systemPackages = with pkgs; [
+    emacs
     vim
     git
     htop
@@ -12,10 +17,12 @@
     comma
 
     networkmanagerapplet
-    
+
     nodejs_latest
+    python3
 
     jujutsu
+    sqlite
     ruby
 
     easyeffects
@@ -25,7 +32,7 @@
     slack
     spotify
     discord
-    
+
     pandoc
 
     s3cmd
@@ -47,5 +54,7 @@
     obs-studio
     playwright
     playwright-driver
+
+    mermaid-cli
   ];
 }

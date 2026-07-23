@@ -1,6 +1,8 @@
-{ pkgs, config, ... }:
-
 {
+  pkgs,
+  config,
+  ...
+}: {
   # Ghostty terminal configuration
   xdg.configFile."ghostty/config".text = ''
     quit-after-last-window-closed = true
@@ -9,8 +11,6 @@
     shell-integration = zsh
     mouse-hide-while-typing = false
     scrollback-limit = 2147483648
-
-    keybind = ctrl+n=new_window
 
     keybind = ctrl+h=goto_split:left
     keybind = ctrl+j=goto_split:bottom
@@ -27,6 +27,7 @@
     keybind = ctrl+b>p=previous_tab
 
     keybind = ctrl+shift+r=reload_config
+    keybind = ctrl+n=unbind
 
     window-save-state = always
     clipboard-read = allow
@@ -184,7 +185,7 @@
       workspaceLayout = "tabbed";
 
       fonts = {
-        names = [ "MesloLGS Nerd Font" "Hack" ];
+        names = ["MesloLGS Nerd Font" "Hack"];
         size = 11.0;
       };
 
@@ -212,9 +213,11 @@
         };
       };
 
-      bars = [{
-        command = "${pkgs.waybar}/bin/waybar";
-      }];
+      bars = [
+        {
+          command = "${pkgs.waybar}/bin/waybar";
+        }
+      ];
 
       output."*" = {
         bg = "#2E3440 solid_color";
@@ -350,10 +353,10 @@
       };
 
       startup = [
-        { command = "swayidle -w timeout 900 'swaylock -f' timeout 1800 'systemctl suspend' before-sleep 'swaylock -f'"; }
-        { command = "sleep 2 && nm-applet --indicator"; }
-        { command = "sleep 2 && blueman-applet"; }
-        { command = "sleep 2 && solaar -w hide"; }
+        {command = "swayidle -w timeout 900 'swaylock -f' timeout 1800 'systemctl suspend' before-sleep 'swaylock -f'";}
+        {command = "sleep 2 && nm-applet --indicator";}
+        {command = "sleep 2 && blueman-applet";}
+        {command = "sleep 2 && solaar -w hide";}
       ];
     };
   };
@@ -364,23 +367,26 @@
       layer = "top";
       position = "top";
       height = 30;
-      modules-left = [ "sway/workspaces" "sway/mode" ];
-      modules-center = [ "sway/window" ];
-      modules-right = [ "sway/language" "idle_inhibitor" "cpu" "memory" "network" "bluetooth" "pulseaudio" "battery" "tray" "clock" ];
+      modules-left = ["sway/workspaces" "sway/mode"];
+      modules-center = ["sway/window"];
+      modules-right = ["sway/language" "idle_inhibitor" "cpu" "memory" "network" "bluetooth" "pulseaudio" "battery" "tray" "clock"];
 
       "sway/workspaces" = {
         disable-scroll = true;
         format = "{name}";
       };
-      "sway/mode" = { format = " {}"; };
-      "sway/language" = { format = " {short}"; };
+      "sway/mode" = {format = " {}";};
+      "sway/language" = {format = " {short}";};
       battery = {
-        states = { warning = 30; critical = 15; };
+        states = {
+          warning = 30;
+          critical = 15;
+        };
         format = "{icon} {capacity}%";
         format-charging = "󰂄 {capacity}%";
-        format-icons = [ "󰁺" "󰁻" "󰁼" "󰁽" "󰁾" "󰁿" "󰂀" "󰂁" "󰂂" "󰁹" ];
+        format-icons = ["󰁺" "󰁻" "󰁼" "󰁽" "󰁾" "󰁿" "󰂀" "󰂁" "󰂂" "󰁹"];
       };
-      "sway/window" = { max-length = 50; };
+      "sway/window" = {max-length = 50;};
       idle_inhibitor = {
         format = "{icon}";
         format-icons = {
@@ -388,8 +394,14 @@
           deactivated = "󰾪";
         };
       };
-      cpu = { format = "󰻠 {usage}%"; interval = 5; };
-      memory = { format = "󰍛 {}%"; interval = 10; };
+      cpu = {
+        format = "󰻠 {usage}%";
+        interval = 5;
+      };
+      memory = {
+        format = "󰍛 {}%";
+        interval = 10;
+      };
       bluetooth = {
         format = "󰂯 {status}";
         format-connected = "󰂱 {status}";
@@ -411,10 +423,10 @@
         format-muted = "󰖁 {format_source}";
         format-source = "󰍬 {volume}%";
         format-source-muted = "󰍭";
-        format-icons.default = [ "󰕿" "󰖀" "󰕾" ];
+        format-icons.default = ["󰕿" "󰖀" "󰕾"];
         on-click = "pavucontrol";
       };
-      tray = { spacing = 10; };
+      tray = {spacing = 10;};
       clock = {
         format = "󰥔 {:%a %b %d  %H:%M}";
         tooltip-format = "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>";
@@ -429,7 +441,7 @@
     exec = "firefox --profile ${config.home.homeDirectory}/.mozilla/firefox/98rkkzfh.Work-new --name firefox-work %U";
     icon = "firefox";
     terminal = false;
-    categories = [ "Network" "WebBrowser" ];
+    categories = ["Network" "WebBrowser"];
     mimeType = [
       "text/html"
       "text/xml"
@@ -456,10 +468,10 @@
   xdg.mimeApps = {
     enable = true;
     defaultApplications = {
-      "x-scheme-handler/http" = [ "firefox-work.desktop" ];
-      "x-scheme-handler/https" = [ "firefox-work.desktop" ];
-      "text/html" = [ "firefox-work.desktop" ];
-      "application/xhtml+xml" = [ "firefox-work.desktop" ];
+      "x-scheme-handler/http" = ["firefox-work.desktop"];
+      "x-scheme-handler/https" = ["firefox-work.desktop"];
+      "text/html" = ["firefox-work.desktop"];
+      "application/xhtml+xml" = ["firefox-work.desktop"];
     };
   };
 
@@ -522,22 +534,35 @@
       {
         profile = {
           name = "laptop";
-          outputs = [{
-            criteria = "Lenovo Group Limited 0x403D Unknown";
-            status = "enable";
-            scale = 1.0;
-          }];
+          outputs = [
+            {
+              criteria = "Lenovo Group Limited 0x403D Unknown";
+              status = "enable";
+              scale = 1.0;
+            }
+          ];
         };
       }
       {
         profile = {
           name = "home";
           outputs = [
-            { criteria = "Lenovo Group Limited 0x403D Unknown"; status = "disable"; }
-            { criteria = "Dell Inc. DELL S2721DGF 77SGR83"; status = "enable"; }
-            { criteria = "Dell Inc. DELL U2722DE BH169H3"; status = "disable"; }
+            {
+              criteria = "Lenovo Group Limited 0x403D Unknown";
+              status = "disable";
+            }
+            {
+              criteria = "Dell Inc. DELL S2721DGF 77SGR83";
+              status = "enable";
+            }
+            {
+              criteria = "Dell Inc. DELL U2722DE BH169H3";
+              status = "disable";
+            }
           ];
-          exec = let sm = "${pkgs.sway}/bin/swaymsg"; in [
+          exec = let
+            sm = "${pkgs.sway}/bin/swaymsg";
+          in [
             "${sm} workspace 1"
             "${sm} move workspace to HDMI-A-1 number 1"
             "${sm} workspace 2"
@@ -575,8 +600,14 @@
         profile = {
           name = "work2";
           outputs = [
-            { criteria = "Lenovo Group Limited 0x403D Unknown"; status = "disable"; }
-            { criteria = "Samsung Electric Company LS34A650U HNTR302475"; status = "enable"; }
+            {
+              criteria = "Lenovo Group Limited 0x403D Unknown";
+              status = "disable";
+            }
+            {
+              criteria = "Samsung Electric Company LS34A650U HNTR302475";
+              status = "enable";
+            }
           ];
         };
       }

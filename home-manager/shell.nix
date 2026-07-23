@@ -125,28 +125,75 @@
         knife-dal() { knife $@ --profile dal1 }
 
         vpn() {
-          local active_session=$(openvpn3 sessions-list | grep "Path:" | awk '{print $2}')
+          local sessions_output=$(openvpn3 sessions-list)
+          local active_session=$(echo "$sessions_output" | grep "Path:" | awk '{print $2}')
+          local session_status=$(echo "$sessions_output" | grep "Status:" | sed 's/^[[:space:]]*Status:[[:space:]]*//')
+
+          # Quick subcommands: vpn off|d (disconnect), vpn s (status)
+          case "$1" in
+            off|down|d)
+              if [[ -n "$active_session" ]]; then
+                openvpn3 session-manage --session-path "$active_session" --disconnect
+                notify-send "VPN" "Disconnected"
+              else
+                echo "No active VPN session."
+              fi
+              return ;;
+            status|s)
+              if [[ -n "$active_session" ]]; then
+                echo "Status: $session_status"
+                openvpn3 session-stats --session-path "$active_session"
+              else
+                echo "No active VPN session."
+              fi
+              return ;;
+          esac
+
+          # Handle unhealthy sessions left over after suspend/sleep
+          if [[ -n "$active_session" ]]; then
+            if [[ "$session_status" == *"paused"* ]]; then
+              echo "VPN session is paused (probably after sleep), resuming..."
+              if openvpn3 session-manage --session-path "$active_session" --resume; then
+                notify-send "VPN" "Session resumed"
+                return
+              fi
+              echo "Resume failed, cleaning up stale session..."
+              openvpn3 session-manage --session-path "$active_session" --disconnect 2>/dev/null
+              active_session=""
+            elif [[ "$session_status" != *"Client connected"* ]]; then
+              echo "Stale VPN session detected ($session_status), cleaning up..."
+              openvpn3 session-manage --session-path "$active_session" --disconnect 2>/dev/null
+              active_session=""
+            fi
+          fi
 
           if [[ -n "$active_session" ]]; then
-            local action=$(echo -e "Disconnect\nStatus\nKeep Running" | fzf --header "VPN is ACTIVE ($active_session)")
+            local action=$(echo -e "Keep Running\nStatus\nRestart\nDisconnect" | fzf --header "VPN is ACTIVE ($session_status)")
 
             case "$action" in
               "Disconnect")
                 openvpn3 session-manage --session-path "$active_session" --disconnect
                 notify-send "VPN" "Disconnected" ;;
+              "Restart")
+                openvpn3 session-manage --session-path "$active_session" --restart
+                notify-send "VPN" "Session restarted" ;;
               "Status")
                 openvpn3 session-stats --session-path "$active_session" ;;
             esac
-          else
-            local vpn_config=$(openvpn3 configs-list | grep -vE '^(Configuration|---|$)' | awk '{print $1}' | fzf --header "Select Vinted Profile")
+            return
+          fi
 
-            if [[ -n "$vpn_config" ]]; then
-              echo "Starting $vpn_config..."
-              openvpn3 session-start --config "$vpn_config"
-              sleep 2
+          # No (healthy) session: connect
+          local vpn_config=$(openvpn3 configs-list | grep -vE '^(Configuration|---|$)' | awk '{print $1}' | fzf --header "Select Vinted Profile")
+
+          if [[ -n "$vpn_config" ]]; then
+            echo "Starting $vpn_config..."
+            if openvpn3 session-start --config "$vpn_config"; then
               notify-send "VPN Connected" "Profile: $vpn_config"
               echo "--- Current DNS Domains ---"
               resolvectl domain | grep -A 1 "tun0"
+            else
+              notify-send -u critical "VPN" "Failed to connect to $vpn_config"
             fi
           fi
         }

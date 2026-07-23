@@ -9,5 +9,4 @@ let
   all = systems ++ users;
 in {
   "home-assistant.age".publicKeys = systems ++ users;
-  "jellystat.age".publicKeys = systems ++ users;
 }

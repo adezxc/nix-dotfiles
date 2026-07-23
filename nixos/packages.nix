@@ -5,6 +5,7 @@ with pkgs; [
   atool
   zip
   lsof
+  pciutils
 
   killall
 
@@ -21,6 +22,7 @@ with pkgs; [
   btop
   jq
   wget
+  tmux
 
   zathura
   bat

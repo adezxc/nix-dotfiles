@@ -1,12 +1,22 @@
 {
-  nixarr,
+  config,
   lib,
+  pkgs,
   ...
 }: let
-  karakeepVars = {
-    PORT = "1234";
-    DISABLE_SIGNUPS = "false";
-  };
+  jellyfinConfigDir = "${config.nixarr.jellyfin.stateDir}/config";
+
+  # Upper bound (bits/s) for clients that are *not* on the local network.
+  # Keeps the web client's auto-quality picker from choosing a bitrate that the
+  # real-world peering between ISPs cannot sustain (-> endless buffering).
+  # 20 Mbit/s is plenty for 1080p remuxes; raise it if remote users complain
+  # about quality instead of buffering.
+  jellyfinRemoteBitrateLimit = 20000000;
+
+  # Addresses nginx talks to Jellyfin from. Without these in KnownProxies,
+  # Jellyfin sees every remote user as 127.0.0.1 (a "local" client) and skips
+  # all remote bandwidth management.
+  jellyfinKnownProxies = ["127.0.0.1" "::1"];
 in {
   nixarr = {
     enable = true;
@@ -20,16 +30,14 @@ in {
 
     jellyfin = {
       enable = true;
-      openFirewall = true;
+      # Do NOT open 8096/8920 to the world: everything goes through nginx + TLS.
+      # Tailscale still reaches Jellyfin directly (tailscale0 is a trusted iface).
+      openFirewall = false;
       expose.https = {
         enable = true;
         domainName = "jellyfin.adamjasinski.xyz";
         acmeMail = "adam@jasinski.lt";
       };
-    };
-
-    jellyseerr = {
-      enable = true;
     };
 
     transmission = {
@@ -72,6 +80,42 @@ in {
     radarr.enable = true;
     sonarr.enable = true;
   };
+
+  # Jellyfin keeps its settings in mutable XML files, so patch the two values
+  # that matter for remote playback on every service start. Everything else in
+  # those files (hardware acceleration, libraries, ...) is left untouched.
+  systemd.services.jellyfin.preStart = lib.mkAfter ''
+    set -euo pipefail
+
+    xml='${pkgs.xmlstarlet}/bin/xmlstarlet'
+    network_xml='${jellyfinConfigDir}/network.xml'
+    encoding_xml='${jellyfinConfigDir}/encoding.xml'
+
+    # KnownProxies: make Jellyfin trust X-Forwarded-For coming from nginx, so
+    # remote clients stop being reported (and treated) as local 127.0.0.1 ones.
+    if [ -f "$network_xml" ]; then
+      "$xml" ed -L \
+        -d '/NetworkConfiguration/KnownProxies' \
+        -s '/NetworkConfiguration' -t elem -n KnownProxies -v "" \
+    ${lib.concatMapStringsSep "\n" (proxy: "        -s '/NetworkConfiguration/KnownProxies' -t elem -n string -v '${proxy}' \\") jellyfinKnownProxies}
+        "$network_xml"
+    fi
+
+    # RemoteClientBitrateLimit: cap the bitrate offered to non-local clients.
+    if [ -f "$encoding_xml" ]; then
+      if [ "$("$xml" sel -t -v 'count(/EncodingOptions/RemoteClientBitrateLimit)' "$encoding_xml")" = "0" ]; then
+        "$xml" ed -L \
+          -s '/EncodingOptions' -t elem -n RemoteClientBitrateLimit \
+          -v '${toString jellyfinRemoteBitrateLimit}' \
+          "$encoding_xml"
+      else
+        "$xml" ed -L \
+          -u '/EncodingOptions/RemoteClientBitrateLimit' \
+          -v '${toString jellyfinRemoteBitrateLimit}' \
+          "$encoding_xml"
+      fi
+    fi
+  '';
 
   services.vaultwarden = {
     enable = true;
@@ -125,25 +169,34 @@ in {
     recommendedTlsSettings = true;
     recommendedGzipSettings = true;
 
-    virtualHosts."adamjasinski.xyz" = {
-      enableACME = true;
-      forceSSL = true;
-      root = "/var/www/blog/public";
-    };
-
-    virtualHosts."jasinski.lt" = {
-      enableACME = true;
-      forceSSL = true;
-      locations."/" = {
-        proxyPass = "https://adamjasinski.xyz";
-      };
-    };
-
     virtualHosts."jellyfin.adamjasinski.xyz" = {
       enableACME = true;
       forceSSL = true;
+
+      extraConfig = ''
+        client_max_body_size 20M;
+      '';
+
       locations."/" = {
         proxyPass = "http://127.0.0.1:8096";
+        proxyWebsockets = true;
+        recommendedProxySettings = true;
+
+        # Video streaming needs long lived, *unbuffered* connections:
+        #  - services.nginx.recommendedProxySettings sets 60s send/read
+        #    timeouts in the http block. A client whose buffer is full stops
+        #    reading, nginx hits the timeout and kills the stream -> the
+        #    infamous spinning buffer icon. Override them here.
+        #  - proxy_buffering must be off so chunks are passed straight through
+        #    instead of being accumulated by nginx first.
+        extraConfig = ''
+          proxy_buffering off;
+          proxy_request_buffering off;
+          proxy_connect_timeout 10s;
+          proxy_send_timeout 12h;
+          proxy_read_timeout 12h;
+          send_timeout 12h;
+        '';
       };
     };
 
@@ -175,27 +228,6 @@ in {
       forceSSL = true;
       locations."/" = {
         proxyPass = "http://127.0.0.1:3002";
-      };
-
-      extraConfig = ''
-               client_body_in_file_only clean;
-               client_body_buffer_size 32k;
-               client_max_body_size 300M;
-               sendfile on;
-               send_timeout 300s;
-
-        proxy_http_version 1.1;
-               proxy_set_header   Upgrade    $http_upgrade;
-               proxy_set_header   Connection "upgrade";
-               proxy_redirect     off;
-      '';
-    };
-
-    virtualHosts."karakeep.adamjasinski.xyz" = {
-      enableACME = true;
-      forceSSL = true;
-      locations."/" = {
-        proxyPass = "http://127.0.0.1:1234";
       };
 
       extraConfig = ''

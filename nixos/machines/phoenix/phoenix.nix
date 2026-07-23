@@ -20,17 +20,23 @@
     ./audioteka-abs.nix
     ./home-assistant.nix
     ./metrics.nix
-    ./jellystat.nix
   ];
 
   networking.hostName = "phoenix";
   services.tailscale = {
     enable = true;
-    extraUpFlags = [ "--accept-dns=false" ];
+    extraUpFlags = ["--accept-dns=false"];
     useRoutingFeatures = "server";
   };
 
   security.sudo.wheelNeedsPassword = false;
+
+  # With 15GB RAM there is no reason to swap out warm pages: swapping caused
+  # latency spikes during media I/O (Jellyfin streaming/transcoding).
+  boot.kernel.sysctl = {
+    "vm.swappiness" = 10;
+    "vm.vfs_cache_pressure" = 50;
+  };
 
   networking.firewall = {
     enable = true;

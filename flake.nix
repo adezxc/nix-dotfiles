@@ -7,6 +7,10 @@
     # You can access packages and modules from different nixpkgs revs
     # at the same time. Here's an working example:
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    # Pinned nixpkgs for the kernel (terrorblade builds a patched kernel).
+    # `nix flake update` will NOT move this since the rev is exact —
+    # bump it manually when you want a newer kernel.
+    nixpkgs-kernel.url = "github:nixos/nixpkgs/241313f4e8e508cb9b13278c2b0fa25b9ca27163";
     # Also see the 'unstable-packages' overlay at 'overlays/default.nix'.
 
     # Home manager
@@ -22,10 +26,6 @@
 
     nixvim.url = "github:nix-community/nixvim";
     nixvim.inputs.nixpkgs.follows = "nixpkgs";
-
-    nix-index-database.url = "github:nix-community/nix-index-database";
-    nix-index-database.inputs.nixpkgs.follows = "nixpkgs";
-
   };
 
   outputs = {
@@ -36,7 +36,6 @@
     agenix,
     microvm,
     nixvim,
-    nix-index-database,
     ...
   } @ inputs: let
     inherit (self) outputs;
@@ -74,16 +73,9 @@
       phoenix = nixpkgs.lib.nixosSystem {
         specialArgs = {inherit inputs outputs;};
         modules = [
-          ({pkgs, ...}: {
-            nixpkgs.overlays = [
-              outputs.overlays.additions
-            ];
-          })
           ./nixos/configuration.nix
           ./nixos/machines/phoenix/phoenix.nix
           nixarr.nixosModules.default
-          outputs.nixosModules.jellystat
-          outputs.nixosModules.maintainerr
           agenix.nixosModules.default
         ];
       };
@@ -101,7 +93,6 @@
         modules = [
           ./nixos/configuration.nix
           ./nixos/machines/terrorblade/terrorblade.nix
-          nix-index-database.nixosModules.default
           microvm.nixosModules.host
           home-manager.nixosModules.home-manager
           {
