@@ -40,6 +40,16 @@ in {
       };
     };
 
+    seerr = {
+      enable = true;
+      openFirewall = false;
+      expose.https = {
+        enable = true;
+        domainName = "seerr.adamjasinski.xyz";
+        acmeMail = "adam@jasinski.lt";
+      };
+    };
+
     transmission = {
       enable = true;
       vpn.enable = false;
