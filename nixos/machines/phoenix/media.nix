@@ -5,6 +5,8 @@
   ...
 }: let
   jellyfinConfigDir = "${config.nixarr.jellyfin.stateDir}/config";
+  reclaimerrStateDir = "${config.nixarr.stateDir}/reclaimerr";
+  reclaimerrPort = 8000;
 
   # Upper bound (bits/s) for clients that are *not* on the local network.
   # Keeps the web client's auto-quality picker from choosing a bitrate that the
@@ -90,6 +92,57 @@ in {
     radarr.enable = true;
     sonarr.enable = true;
   };
+
+  # Reclaimerr is not supported by nixarr yet, but follows its state and media
+  # ownership conventions. It needs media-group access to remove sidecar files
+  # itself when it deletes or moves a library item.
+  users.groups.reclaimerr = {};
+  users.users.reclaimerr = {
+    isSystemUser = true;
+    group = "reclaimerr";
+    extraGroups = ["media"];
+  };
+
+  systemd.tmpfiles.rules = [
+    "d '${reclaimerrStateDir}' 0750 reclaimerr reclaimerr - -"
+  ];
+
+  systemd.services.reclaimerr = {
+    description = "Reclaimerr media-library cleanup service";
+    after = ["network-online.target" "systemd-tmpfiles-setup.service"];
+    wants = ["network-online.target"];
+    wantedBy = ["multi-user.target"];
+
+    environment = {
+      DATA_DIR = reclaimerrStateDir;
+      STATIC_DIR = "${reclaimerrStateDir}/static";
+      AVATARS_DIR = "${reclaimerrStateDir}/static/avatars";
+      FRONTEND_DIST = "${pkgs.reclaimerr}/share/reclaimerr/frontend";
+      API_HOST = "0.0.0.0";
+      API_PORT = toString reclaimerrPort;
+      GRANIAN_HOST = "0.0.0.0";
+      GRANIAN_PORT = toString reclaimerrPort;
+      TZ = config.time.timeZone;
+      COOKIE_SECURE = "false";
+    };
+
+    serviceConfig = {
+      User = "reclaimerr";
+      Group = "reclaimerr";
+      WorkingDirectory = reclaimerrStateDir;
+      ExecStart = "${pkgs.reclaimerr}/bin/reclaimerr";
+      Restart = "on-failure";
+      RestartSec = "5s";
+      UMask = "0077";
+      NoNewPrivileges = true;
+      PrivateTmp = true;
+      ProtectHome = true;
+      ProtectSystem = "strict";
+      ReadWritePaths = [reclaimerrStateDir config.nixarr.mediaDir];
+    };
+  };
+
+  networking.firewall.allowedTCPPorts = [reclaimerrPort];
 
   # Jellyfin keeps its settings in mutable XML files, so patch the two values
   # that matter for remote playback on every service start. Everything else in

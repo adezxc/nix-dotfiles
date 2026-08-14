@@ -13,6 +13,7 @@
   # Note: bootloader config is now set per-machine in nixos/machines/<hostname>/
   # This allows different machines to use different bootloaders (grub vs systemd-boot)
 
+  nixpkgs.overlays = [outputs.overlays.additions];
   nixpkgs.config.allowUnfree = true;
   nixpkgs.config.permittedInsecurePackages = [
     "aspnetcore-runtime-6.0.36"
