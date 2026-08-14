@@ -42,7 +42,7 @@ in {
 
     seerr = {
       enable = true;
-      openFirewall = false;
+      openFirewall = true;
       expose.https = {
         enable = true;
         domainName = "seerr.adamjasinski.xyz";
