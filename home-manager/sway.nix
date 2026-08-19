@@ -2,7 +2,33 @@
   pkgs,
   config,
   ...
-}: {
+}: let
+  sleepInhibitorStatus = pkgs.writeShellScript "waybar-sleep-inhibitor-status" ''
+    if ${pkgs.systemd}/bin/systemctl --user is-active --quiet waybar-sleep-inhibitor.service; then
+      printf '%s\n' '{"text":"󰅶","class":"activated","tooltip":"Sleep inhibitor: active"}'
+    else
+      printf '%s\n' '{"text":"󰾪","class":"deactivated","tooltip":"Sleep inhibitor: inactive"}'
+    fi
+  '';
+  toggleSleepInhibitor = pkgs.writeShellScript "toggle-waybar-sleep-inhibitor" ''
+    if ${pkgs.systemd}/bin/systemctl --user is-active --quiet waybar-sleep-inhibitor.service; then
+      exec ${pkgs.systemd}/bin/systemctl --user stop waybar-sleep-inhibitor.service
+    else
+      exec ${pkgs.systemd}/bin/systemctl --user start waybar-sleep-inhibitor.service
+    fi
+  '';
+in {
+  # This service only runs while the Waybar toggle is active. Keeping the
+  # logind inhibitor in a separate process makes its state inspectable and
+  # avoids relying on Waybar's in-process inhibitor implementation.
+  systemd.user.services.waybar-sleep-inhibitor = {
+    Unit.Description = "Waybar sleep inhibitor";
+    Service = {
+      Type = "simple";
+      ExecStart = "${pkgs.systemd}/bin/systemd-inhibit --what=sleep --mode=block --why='Waybar sleep inhibitor' ${pkgs.coreutils}/bin/sleep infinity";
+    };
+  };
+
   # Ghostty terminal configuration
   xdg.configFile."ghostty/config".text = ''
     quit-after-last-window-closed = true
@@ -369,7 +395,7 @@
       height = 30;
       modules-left = ["sway/workspaces" "sway/mode"];
       modules-center = ["sway/window"];
-      modules-right = ["sway/language" "idle_inhibitor" "cpu" "memory" "network" "bluetooth" "pulseaudio" "battery" "tray" "clock"];
+      modules-right = ["sway/language" "custom/sleep_inhibitor" "cpu" "memory" "network" "bluetooth" "pulseaudio" "battery" "tray" "clock"];
 
       "sway/workspaces" = {
         disable-scroll = true;
@@ -387,12 +413,11 @@
         format-icons = ["󰁺" "󰁻" "󰁼" "󰁽" "󰁾" "󰁿" "󰂀" "󰂁" "󰂂" "󰁹"];
       };
       "sway/window" = {max-length = 50;};
-      idle_inhibitor = {
-        format = "{icon}";
-        format-icons = {
-          activated = "󰅶";
-          deactivated = "󰾪";
-        };
+      "custom/sleep_inhibitor" = {
+        exec = "${sleepInhibitorStatus}";
+        return-type = "json";
+        interval = 1;
+        on-click = "${toggleSleepInhibitor}";
       };
       cpu = {
         format = "󰻠 {usage}%";

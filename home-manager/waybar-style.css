@@ -58,7 +58,7 @@ window#waybar {
 #language,
 #clock,
 #tray,
-#idle_inhibitor {
+#custom-sleep_inhibitor {
     padding: 0 10px;
     margin: 4px 2px;
     border-radius: 4px;
@@ -86,7 +86,7 @@ window#waybar {
     color: #ECEFF4;
 }
 
-#idle_inhibitor.activated {
+#custom-sleep_inhibitor.activated {
     color: #2E3440;
     background-color: #EBCB8B;
 }
