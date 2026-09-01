@@ -8,6 +8,18 @@
   reclaimerrStateDir = "${config.nixarr.stateDir}/reclaimerr";
   reclaimerrPort = 8000;
 
+  # --- Music stack (slskd + navidrome + explo; lidarr via nixarr) ---
+  slskdStateDir = "${config.nixarr.stateDir}/slskd";
+  # Downloads go straight into the music library so Navidrome picks them up
+  # automatically (slskd only moves *completed* files here; partial files stay
+  # in the incomplete dir under the state directory).
+  slskdDownloadsDir = "${config.nixarr.mediaDir}/library/music/slskd";
+  exploStateDir = "${config.nixarr.stateDir}/explo";
+  beetsStateDir = "${config.nixarr.stateDir}/beets";
+  exploPort = 7288;
+  navidromePort = 4533;
+  musicDir = "${config.nixarr.mediaDir}/library/music";
+
   # Upper bound (bits/s) for clients that are *not* on the local network.
   # Keeps the web client's auto-quality picker from choosing a bitrate that the
   # real-world peering between ISPs cannot sustain (-> endless buffering).
@@ -19,6 +31,66 @@
   # Jellyfin sees every remote user as 127.0.0.1 (a "local" client) and skips
   # all remote bandwidth management.
   jellyfinKnownProxies = ["127.0.0.1" "::1"];
+
+  # beets: auto-import of manual slskd downloads. A timer scans the slskd
+  # download inbox every few minutes, tags via MusicBrainz (falls back to the
+  # existing tags for obscure Soulseek rips), fetches cover art + genre, and
+  # moves albums into the standard library structure. explo keeps managing
+  # its own downloads under library/music/explo.
+  beetsConfig =
+    pkgs.writers.writeYAML "beets-config.yaml"
+    {
+      directory = musicDir;
+      library = "${beetsStateDir}/library.db";
+      import = {
+        move = true;
+        write = true;
+        quiet = true;
+        quiet_fallback = "asis";
+        resume = false;
+        duplicate_action = "skip";
+        log = "${beetsStateDir}/import.log";
+      };
+      plugins = "fetchart lastgenre permissions";
+      paths = {
+        default = "$albumartist/$album%aunique{}/$track $title";
+        singleton = "Non-Album/$artist/$title";
+        comp = "Compilations/$album%aunique{}/$track $title";
+      };
+      permissions = {
+        file = "664";
+        dir = "775";
+      };
+      fetchart.cautious = true;
+      lastgenre = {
+        count = 3;
+        separator = "; ";
+        # only accept tags from the canonical genre list — Last.fm top tags
+        # include junk like "brittanique" or "seen live"
+        whitelist = true;
+      };
+    };
+
+  beetsImportScript = pkgs.writeShellScript "beets-import" ''
+    set -uo pipefail
+    inbox="${musicDir}/slskd"
+    rc=0
+    # Import the *children* of the inbox, not the inbox itself: beets prunes
+    # directories it empties, and the inbox dir must never disappear —
+    # slskd has a read-write bind mount on it (deleting it orphans that mount
+    # and downloads start failing with EROFS until slskd is restarted).
+    shopt -s nullglob
+    entries=("$inbox"/*)
+    shopt -u nullglob
+    if [ ''${#entries[@]} -gt 0 ]; then
+      ${pkgs.beets}/bin/beet --config ${beetsConfig} import "''${entries[@]}" || rc=$?
+      # As-is imports (no MusicBrainz match) skip the import-stage art fetch —
+      # fetch covers for any album still missing one (idempotent).
+      ${pkgs.beets}/bin/beet --config ${beetsConfig} fetchart || true
+    fi
+    find "$inbox" -mindepth 1 -type d -empty -delete 2>/dev/null || true
+    exit $rc
+  '';
 in {
   nixarr = {
     enable = true;
@@ -105,6 +177,19 @@ in {
 
   systemd.tmpfiles.rules = [
     "d '${reclaimerrStateDir}' 0750 reclaimerr reclaimerr - -"
+    "d '${slskdStateDir}' 0770 slskd media - -"
+    "d '${slskdStateDir}/incomplete' 0770 slskd media - -"
+    # setgid so downloads created by slskd (primary group 'slskd') inherit the
+    # media group, letting beets/explo move and retag them
+    "d '${slskdDownloadsDir}' 2775 slskd media - -"
+    "d '${exploStateDir}' 0770 explo media - -"
+    "d '${exploStateDir}/config' 0770 explo media - -"
+    "d '${exploStateDir}/cache' 0770 explo media - -"
+    "d '${beetsStateDir}' 0770 beets media - -"
+    # explo downloads into a subfolder of the music library
+    "d '${musicDir}/explo' 0775 explo media - -"
+    # explo exec's `python3 search_ytmusic.py` from its working directory
+    "L+ '${exploStateDir}/search_ytmusic.py' - - - - ${pkgs.explo}/share/explo/search_ytmusic.py"
   ];
 
   systemd.services.reclaimerr = {
@@ -143,6 +228,149 @@ in {
   };
 
   networking.firewall.allowedTCPPorts = [reclaimerrPort];
+
+  # ===================================================================
+  # Music stack: slskd (Soulseek) + Navidrome + Explo.
+  # Lidarr is enabled through nixarr above (port 8686).
+  # ===================================================================
+
+  # slskd: Soulseek daemon with a web UI on port 5030 (tailscale-only).
+  # /etc/nixos/slskd.env must provide:
+  #   SLSKD_USERNAME / SLSKD_PASSWORD      - web UI login
+  #   SLSKD_SLSK_USERNAME / SLSKD_SLSK_PASSWORD - Soulseek network login
+  #     (logging in with a fresh username/password registers the account)
+  #   SLSKD_API_KEY                        - API key explo uses
+  #   SLSKD_JWT_KEY                        - optional, avoids JWT warning
+  services.slskd = {
+    enable = true;
+    environmentFile = "/etc/nixos/slskd.env";
+    # Soulseek listen port: incoming peer connections massively improve
+    # download speeds, so open it like the torrent peer port.
+    openFirewall = true;
+    settings = {
+      soulseek.description = "phoenix (slskd via NixOS)";
+      shares.directories = [musicDir];
+      directories = {
+        downloads = slskdDownloadsDir;
+        incomplete = "${slskdStateDir}/incomplete";
+      };
+    };
+  };
+
+  # Share read access to the music library; downloads dir is group-writable
+  # for the media group so explo can migrate completed files into the library.
+  users.users.slskd.extraGroups = ["media"];
+  # Group-writable downloads so beets can retag/move them (media group).
+  systemd.services.slskd.serviceConfig.UMask = "0002";
+
+  # Navidrome: music streaming server (Subsonic API + web UI on 4533).
+  # Exposed via nginx at music.adamjasinski.xyz; direct access from LAN and
+  # tailscale for mobile Subsonic clients.
+  services.navidrome = {
+    enable = true;
+    openFirewall = true;
+    settings = {
+      Address = "0.0.0.0";
+      Port = navidromePort;
+      MusicFolder = musicDir;
+      EnableInsightsCollector = false;
+      ScanSchedule = "@every 5m";
+    };
+  };
+  users.users.navidrome.extraGroups = ["media"];
+
+  # Explo: ListenBrainz-powered music discovery ("Discover Weekly" for
+  # Navidrome). Requests missing tracks from slskd (YouTube fallback) and
+  # creates playlists in Navidrome. Web UI on port 7288 (tailscale-only).
+  # Its entire configuration lives in ${exploStateDir}/.env and is editable
+  # from the web UI (WEB_UI=true).
+  users.groups.explo = {};
+  users.users.explo = {
+    isSystemUser = true;
+    group = "explo";
+    extraGroups = ["media"];
+  };
+
+  systemd.services.explo = {
+    description = "Explo music discovery for Navidrome";
+    after = ["network-online.target"];
+    wants = ["network-online.target"];
+    wantedBy = ["multi-user.target"];
+
+    # explo shells out to yt-dlp, ffmpeg and python3 (ytmusicapi fallback for
+    # YouTube search when no YOUTUBE_API_KEY is set).
+    environment = {
+      PATH =
+        lib.mkForce
+        (lib.makeBinPath [
+          pkgs.ffmpeg
+          pkgs.yt-dlp
+          (pkgs.python3.withPackages (ps: [ps.ytmusicapi]))
+        ]);
+      HOME = exploStateDir;
+      XDG_CACHE_HOME = "${exploStateDir}/cache";
+      TZ = config.time.timeZone;
+    };
+
+    serviceConfig = {
+      User = "explo";
+      Group = "explo";
+      WorkingDirectory = exploStateDir;
+      ExecStart = "${pkgs.explo}/bin/explo --config ${exploStateDir}/.env";
+      Restart = "on-failure";
+      RestartSec = "10s";
+      UMask = "0002";
+      NoNewPrivileges = true;
+      PrivateTmp = true;
+      ProtectHome = true;
+      ProtectSystem = "strict";
+      ReadWritePaths = [
+        exploStateDir
+        musicDir
+        slskdDownloadsDir
+      ];
+    };
+  };
+
+  users.groups.beets = {};
+  users.users.beets = {
+    isSystemUser = true;
+    group = "beets";
+    extraGroups = ["media"];
+  };
+
+  systemd.services.beets-import = {
+    description = "beets auto-import of slskd downloads into the music library";
+    after = ["network-online.target"];
+    wants = ["network-online.target"];
+    environment.HOME = beetsStateDir;
+    serviceConfig = {
+      Type = "oneshot";
+      User = "beets";
+      Group = "beets";
+      UMask = "0002";
+      # beets prunes the emptied inbox, but slskd needs it to exist — recreate
+      # it before each run ('+' prefix: this command runs as root)
+      ExecStartPre = "+${pkgs.coreutils}/bin/install -d -o slskd -g media -m 2775 ${slskdDownloadsDir}";
+      ExecStart = "${beetsImportScript}";
+      NoNewPrivileges = true;
+      PrivateTmp = true;
+      ProtectHome = true;
+      ProtectSystem = "strict";
+      ReadWritePaths = [musicDir beetsStateDir];
+    };
+  };
+
+  systemd.timers.beets-import = {
+    description = "Periodically import slskd downloads with beets";
+    wantedBy = ["timers.target"];
+    timerConfig = {
+      OnBootSec = "10min";
+      OnUnitActiveSec = "5min";
+      RandomizedDelaySec = "1min";
+      Persistent = true;
+    };
+  };
 
   # Jellyfin keeps its settings in mutable XML files, so patch the two values
   # that matter for remote playback on every service start. Everything else in
@@ -260,6 +488,15 @@ in {
           proxy_read_timeout 12h;
           send_timeout 12h;
         '';
+      };
+    };
+
+    virtualHosts."music.adamjasinski.xyz" = {
+      enableACME = true;
+      forceSSL = true;
+      locations."/" = {
+        proxyPass = "http://127.0.0.1:${toString navidromePort}";
+        proxyWebsockets = true;
       };
     };
 

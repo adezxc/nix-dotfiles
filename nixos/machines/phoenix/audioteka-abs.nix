@@ -32,7 +32,10 @@
       "LANGUAGE" = "pl";
     };
     ports = [
-      "3001:3001/tcp"
+      # NOTE: was 3001:3001, but grafana owns 3001 on the host (they collided
+      # after the Aug 12 reboot). Audiobookshelf's metadata provider URL needs
+      # to point at http://localhost:3004 if it still references the old port.
+      "3004:3001/tcp"
     ];
     log-driver = "journald";
     extraOptions = [
