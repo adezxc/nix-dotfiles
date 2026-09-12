@@ -62,11 +62,6 @@ in {
       };
     };
 
-    recyclarr = {
-      enable = true;
-      configFile = "/etc/nixos/recyclarr.yaml";
-    };
-
     lidarr = {
       enable = true;
       # Lidarr *nightly*: plugin support (needed for the slskd plugin —
@@ -92,8 +87,6 @@ in {
     };
     bazarr.enable = true;
     prowlarr.enable = true;
-    radarr.enable = true;
-    sonarr.enable = true;
   };
 
   # ===================================================================
@@ -112,6 +105,18 @@ in {
       openFirewall = false;
       # opens 80/443 for the nginx vhost + ACME
       exposeHttps = true;
+    };
+
+    sonarr.enable = true;
+    radarr.enable = true;
+
+    # Recyclarr moved together with sonarr/radarr: nixarr's recyclarr gets
+    # its SONARR_API_KEY/RADARR_API_KEY env file from the arrs' nixarr
+    # `*-api` services, which disappear once the arrs leave nixarr. The
+    # mediastack module extracts the keys from config.xml itself.
+    recyclarr = {
+      enable = true;
+      configFile = "/etc/nixos/recyclarr.yaml";
     };
   };
 

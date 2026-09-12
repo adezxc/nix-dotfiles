@@ -557,7 +557,7 @@ in {
           mkIf (cfg.recyclarr.configFile != null)
           {
             serviceConfig = {
-              ExecStart = mkForce "${pkgs.recyclarr}/bin/recyclarr sync --config ${cfg.recyclarr.configFile}";
+              ExecStart = mkForce "${pkgs.recyclarr}/bin/recyclarr sync --config ${toString cfg.recyclarr.configFile}";
               Environment = mkForce [
                 "RECYCLARR_CONFIG_DIR=${stateDir}/recyclarr"
                 "RECYCLARR_DATA_DIR=${stateDir}/recyclarr"
