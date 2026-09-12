@@ -466,6 +466,7 @@ in {
         services.nginx = mkIf (cfg.seerr.domain != null) {
           enable = true;
           recommendedProxySettings = true;
+          recommendedOptimisation = true;
           virtualHosts."${cfg.seerr.domain}" = {
             enableACME = true;
             forceSSL = true;
@@ -521,6 +522,7 @@ in {
         services.nginx = mkIf (cfg.audiobookshelf.domain != null) {
           enable = true;
           recommendedProxySettings = true;
+          recommendedOptimisation = true;
           virtualHosts."${cfg.audiobookshelf.domain}" = {
             enableACME = true;
             forceSSL = true;

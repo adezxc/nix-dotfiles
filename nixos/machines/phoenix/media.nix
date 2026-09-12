@@ -5,20 +5,20 @@
   ...
 }: let
   jellyfinConfigDir = "${config.services.mediastack.stateDir}/jellyfin/config";
-  reclaimerrStateDir = "${config.nixarr.stateDir}/reclaimerr";
+  reclaimerrStateDir = "${config.services.mediastack.stateDir}/reclaimerr";
   reclaimerrPort = 8000;
 
-  # --- Music stack (slskd + navidrome + explo; lidarr via nixarr) ---
-  slskdStateDir = "${config.nixarr.stateDir}/slskd";
+  # --- Music stack (slskd + navidrome + explo; lidarr via mediastack) ---
+  slskdStateDir = "${config.services.mediastack.stateDir}/slskd";
   # Completed slskd downloads land here (in `lidarr/<download id>/...` when
   # grabbed through the Lidarr slskd plugin); Lidarr imports them from this
   # dir into its library tree and the plugin deletes the leftovers. Kept
   # OUTSIDE the music library so Navidrome never sees partial downloads.
-  slskdDownloadsDir = "${config.nixarr.mediaDir}/downloads/slskd";
-  exploStateDir = "${config.nixarr.stateDir}/explo";
+  slskdDownloadsDir = "${config.services.mediastack.mediaDir}/downloads/slskd";
+  exploStateDir = "${config.services.mediastack.stateDir}/explo";
   exploPort = 7288;
   navidromePort = 4533;
-  musicDir = "${config.nixarr.mediaDir}/library/music";
+  musicDir = "${config.services.mediastack.mediaDir}/library/music";
 
   # Upper bound (bits/s) for clients that are *not* on the local network.
   # Keeps the web client's auto-quality picker from choosing a bitrate that the
@@ -32,67 +32,10 @@
   # all remote bandwidth management.
   jellyfinKnownProxies = ["127.0.0.1" "::1"];
 in {
-  nixarr = {
-    enable = true;
-    mediaDir = "/data/media";
-    stateDir = "/data/media/.state/nixarr";
-
-    vpn = {
-      enable = false;
-      wgConf = "/data/.secret/wg.conf";
-    };
-
-    seerr = {
-      enable = true;
-      openFirewall = true;
-      expose.https = {
-        enable = true;
-        domainName = "seerr.adamjasinski.xyz";
-        acmeMail = "adam@jasinski.lt";
-      };
-    };
-
-    transmission = {
-      enable = true;
-      vpn.enable = false;
-      peerPort = 34497; # Set this to the port forwarded by your VPN
-      extraSettings = {
-        ratio-limit-enabled = true;
-        ratio-limit = 2.5;
-      };
-    };
-
-    lidarr = {
-      enable = true;
-      # Lidarr *nightly*: plugin support (needed for the slskd plugin —
-      # Soulseek as indexer + download client) is not in the stable channel.
-      package = pkgs.lidarr-nightly;
-    };
-
-    sabnzbd = {
-      openFirewall = true;
-      vpn.enable = false;
-      enable = true;
-      guiPort = 9999;
-    };
-
-    audiobookshelf = {
-      enable = true;
-      openFirewall = true;
-      expose.https = {
-        enable = true;
-        domainName = "audiobooks.adamjasinski.xyz";
-        acmeMail = "adam@jasinski.lt";
-      };
-    };
-    bazarr.enable = true;
-    prowlarr.enable = true;
-  };
-
   # ===================================================================
-  # nixarr → mediastack migration. Services move here one at a time as
-  # they are removed from the nixarr block above; state dirs and uids are
-  # identical, so each move is a drop-in replacement.
+  # Media stack (formerly the `nixarr` module): stock nixpkgs service
+  # modules + the glue in modules/nixos/mediastack.nix. State dirs and uids
+  # are identical to what nixarr used, so everything is a drop-in replacement.
   # ===================================================================
   services.mediastack = {
     enable = true;
@@ -110,17 +53,51 @@ in {
     sonarr.enable = true;
     radarr.enable = true;
 
-    # Recyclarr moved together with sonarr/radarr: nixarr's recyclarr gets
-    # its SONARR_API_KEY/RADARR_API_KEY env file from the arrs' nixarr
-    # `*-api` services, which disappear once the arrs leave nixarr. The
-    # mediastack module extracts the keys from config.xml itself.
+    lidarr.enable = true;
+
+    prowlarr.enable = true;
+    bazarr.enable = true;
+
+    seerr = {
+      enable = true;
+      openFirewall = true;
+      domain = "seerr.adamjasinski.xyz";
+    };
+
+    transmission = {
+      enable = true;
+      peerPort = 34497; # Set this to the port forwarded by your VPN
+      settings = {
+        ratio-limit-enabled = true;
+        ratio-limit = 2.5;
+      };
+    };
+
+    sabnzbd = {
+      enable = true;
+      guiPort = 9999;
+      openFirewall = true;
+    };
+
+    audiobookshelf = {
+      enable = true;
+      openFirewall = true;
+      domain = "audiobooks.adamjasinski.xyz";
+    };
+
+    # Recyclarr gets its SONARR_API_KEY/RADARR_API_KEY env file from the
+    # mediastack module, which extracts the keys from the arrs' config.xml.
     recyclarr = {
       enable = true;
       configFile = "/etc/nixos/recyclarr.yaml";
     };
   };
 
-  # Reclaimerr is not supported by nixarr yet, but follows its state and media
+  # Lidarr *nightly*: plugin support (needed for the slskd plugin — Soulseek
+  # as indexer + download client) is not in the stable channel.
+  services.lidarr.package = pkgs.lidarr-nightly;
+
+  # Reclaimerr follows the mediastack state and media
   # ownership conventions. It needs media-group access to remove sidecar files
   # itself when it deletes or moves a library item.
   users.groups.reclaimerr = {};
@@ -179,7 +156,7 @@ in {
       PrivateTmp = true;
       ProtectHome = true;
       ProtectSystem = "strict";
-      ReadWritePaths = [reclaimerrStateDir config.nixarr.mediaDir];
+      ReadWritePaths = [reclaimerrStateDir config.services.mediastack.mediaDir];
     };
   };
 
@@ -187,7 +164,7 @@ in {
 
   # ===================================================================
   # Music stack: slskd (Soulseek) + Navidrome + Explo.
-  # Lidarr is enabled through nixarr above (port 8686), running the nightly
+  # Lidarr is enabled through mediastack above (port 8686), running the nightly
   # build so the slskd plugin (Soulseek indexer + download client) can be
   # installed from System > Plugins:
   #   https://github.com/allquiet-hub/Lidarr.Plugin.Slskd
@@ -293,17 +270,18 @@ in {
 
   # nixpkgs' sabnzbd module only merges `settings` into sabnzbd.ini when
   # configFile is null — it defaults to non-null for stateVersion < 26.05,
-  # which would silently ignore the category below (and nixarr's settings).
-  # The ini still lives at the same place via nixarr's BindPaths.
+  # which would silently ignore the category below (and the mediastack
+  # module's settings). The ini still lives at the same place via the
+  # mediastack module's BindPaths.
   services.sabnzbd.configFile = null;
 
   # Lidarr's downloads would otherwise land in SABnzbd's default complete
   # dir (usenet/manual): the "lidarr" category routes them to their own
-  # folder, matching the dirs nixarr creates per *arr service.
+  # folder, matching the dirs the mediastack module creates per *arr service.
   services.sabnzbd.settings.categories.lidarr = {
     name = "lidarr";
     order = 3;
-    dir = "${config.nixarr.mediaDir}/usenet/lidarr";
+    dir = "${config.services.mediastack.mediaDir}/usenet/lidarr";
     pp = "";
     script = "";
     newzbin = "";
@@ -313,7 +291,7 @@ in {
   # Lidarr-managed music lives in its own subtree, separate from the
   # slskd/explo-managed part of the library (everything stays inside
   # musicDir so Navidrome scans it all).
-  # NOTE: explo runs with primary group "media" (like nixarr's *arr users,
+  # NOTE: explo runs with primary group "media" (like the mediastack *arr users,
   # incl. lidarr) so every service in the music pipeline can write into each
   # other's directories — otherwise e.g. explo-created artist folders block
   # Lidarr imports with "Permissions error".
