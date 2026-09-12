@@ -20,6 +20,8 @@
     ./audioteka-abs.nix
     ./home-assistant.nix
     ./metrics.nix
+    # nixarr replacement — inert until services.mediastack.enable = true
+    outputs.nixosModules.mediastack
   ];
 
   networking.hostName = "phoenix";

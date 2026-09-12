@@ -4,18 +4,18 @@
   pkgs,
   ...
 }: let
-  jellyfinConfigDir = "${config.nixarr.jellyfin.stateDir}/config";
+  jellyfinConfigDir = "${config.services.mediastack.stateDir}/jellyfin/config";
   reclaimerrStateDir = "${config.nixarr.stateDir}/reclaimerr";
   reclaimerrPort = 8000;
 
   # --- Music stack (slskd + navidrome + explo; lidarr via nixarr) ---
   slskdStateDir = "${config.nixarr.stateDir}/slskd";
-  # Downloads go straight into the music library so Navidrome picks them up
-  # automatically (slskd only moves *completed* files here; partial files stay
-  # in the incomplete dir under the state directory).
-  slskdDownloadsDir = "${config.nixarr.mediaDir}/library/music/slskd";
+  # Completed slskd downloads land here (in `lidarr/<download id>/...` when
+  # grabbed through the Lidarr slskd plugin); Lidarr imports them from this
+  # dir into its library tree and the plugin deletes the leftovers. Kept
+  # OUTSIDE the music library so Navidrome never sees partial downloads.
+  slskdDownloadsDir = "${config.nixarr.mediaDir}/downloads/slskd";
   exploStateDir = "${config.nixarr.stateDir}/explo";
-  beetsStateDir = "${config.nixarr.stateDir}/beets";
   exploPort = 7288;
   navidromePort = 4533;
   musicDir = "${config.nixarr.mediaDir}/library/music";
@@ -31,136 +31,6 @@
   # Jellyfin sees every remote user as 127.0.0.1 (a "local" client) and skips
   # all remote bandwidth management.
   jellyfinKnownProxies = ["127.0.0.1" "::1"];
-
-  # beets: auto-import of manual slskd downloads. A timer scans the slskd
-  # download inbox every few minutes, tags via MusicBrainz (falls back to the
-  # existing tags for obscure Soulseek rips), fetches cover art + genre, and
-  # moves albums into the standard library structure. explo keeps managing
-  # its own downloads under library/music/explo.
-  beetsConfig =
-    pkgs.writers.writeYAML "beets-config.yaml"
-    {
-      directory = musicDir;
-      library = "${beetsStateDir}/library.db";
-      import = {
-        move = true;
-        write = true;
-        quiet = true;
-        quiet_fallback = "asis";
-        resume = false;
-        duplicate_action = "skip";
-        log = "${beetsStateDir}/import.log";
-      };
-      plugins = "fetchart lastgenre";
-      # NOTE: no `permissions` plugin — modes are already 664/775 everywhere
-      # via the media group + UMask 0002, and the plugin hard-crashes on
-      # foreign-owned files whose mode doesn't match (chmod needs ownership).
-      paths = {
-        default = "$albumartist/$album%aunique{}/$track $title";
-        singleton = "Non-Album/$artist/$title";
-        comp = "Compilations/$album%aunique{}/$track $title";
-      };
-      fetchart.cautious = true;
-      lastgenre = {
-        count = 3;
-        separator = "; ";
-        # only accept tags from the canonical genre list — Last.fm top tags
-        # include junk like "brittanique" or "seen live"
-        whitelist = true;
-      };
-    };
-
-  beetsImportScript = pkgs.writeShellScript "beets-import" ''
-    set -uo pipefail
-    inbox="${musicDir}/slskd"
-    rc=0
-    # Import the *children* of the inbox, not the inbox itself: beets prunes
-    # directories it empties, and the inbox dir must never disappear —
-    # slskd has a read-write bind mount on it (deleting it orphans that mount
-    # and downloads start failing with EROFS until slskd is restarted).
-    shopt -s nullglob
-    entries=("$inbox"/*)
-    shopt -u nullglob
-    if [ ''${#entries[@]} -gt 0 ]; then
-      ${pkgs.beets}/bin/beet --config ${beetsConfig} import "''${entries[@]}" || rc=$?
-      # As-is imports (no MusicBrainz match) skip the import-stage art fetch —
-      # fetch covers for any album still missing one (idempotent).
-      ${pkgs.beets}/bin/beet --config ${beetsConfig} fetchart || true
-      ${pkgs.beets}/bin/beet --config ${beetsConfig} lastgenre || true
-      # widen albums that arrived with only a single pre-existing genre tag
-      ${pkgs.beets}/bin/beet --config ${beetsConfig} lastgenre --force 'genres::^[^;]+$' || true
-      ${pkgs.beets}/bin/beet --config ${beetsConfig} write || true
-    fi
-    find "$inbox" -mindepth 1 -type d -empty -delete 2>/dev/null || true
-    exit $rc
-  '';
-
-  # beets for the Lidarr subtree: tags in place (genres, covers, tag fixes)
-  # but never moves or renames anything — Lidarr owns the layout there.
-  # `incremental` skips already-imported directories, so the timer stays
-  # cheap. Separate library DB + log from the slskd-inbox beets.
-  beetsLidarrConfig =
-    pkgs.writers.writeYAML "beets-lidarr-config.yaml"
-    {
-      directory = musicDir;
-      library = "${beetsStateDir}/lidarr-library.db";
-      import = {
-        copy = false;
-        move = false;
-        write = true;
-        quiet = true;
-        quiet_fallback = "asis";
-        resume = false;
-        incremental = true;
-        duplicate_action = "skip";
-        log = "${beetsStateDir}/lidarr-import.log";
-      };
-      plugins = "fetchart lastgenre";
-      # NOTE: no `permissions` plugin here — it chmods files, which requires
-      # ownership; in the Lidarr tree beets curates other users' files
-      # (lidarr/sabnzbd/adam). Modes are already 664/775 via Lidarr's umask.
-      lastgenre = {
-        count = 3;
-        separator = "; ";
-        whitelist = true;
-      };
-      fetchart.cautious = true;
-    };
-
-  beetsLidarrScript = pkgs.writeShellScript "beets-lidarr" ''
-    set -uo pipefail
-    root="${musicDir}/lidarr"
-    rc=0
-    if [ -d "$root" ]; then
-      ${pkgs.beets}/bin/beet --config ${beetsLidarrConfig} import "$root" || rc=$?
-      # pick up anything new (e.g. Lidarr quality upgrades) that the
-      # incremental log skipped
-      ${pkgs.beets}/bin/beet --config ${beetsLidarrConfig} lastgenre || true
-      ${pkgs.beets}/bin/beet --config ${beetsLidarrConfig} fetchart || true
-    fi
-    # Files often arrive pre-tagged with a single genre (e.g. Lidarr writes
-    # one on import), which lastgenre then refuses to overwrite — force a
-    # re-fetch for albums that have only one genre, and sync tags to files.
-    ${pkgs.beets}/bin/beet --config ${beetsLidarrConfig} lastgenre --force 'genres::^[^;]+$' || true
-    ${pkgs.beets}/bin/beet --config ${beetsLidarrConfig} write || true
-    exit $rc
-  '';
-
-  # Manual whole-library metadata fix-up (missing covers + genres):
-  #   sudo systemctl start beets-curate
-  beetsCurateScript = pkgs.writeShellScript "beets-curate" ''
-    set -uo pipefail
-    ${pkgs.beets}/bin/beet --config ${beetsConfig} fetchart || true
-    ${pkgs.beets}/bin/beet --config ${beetsConfig} lastgenre || true
-    ${pkgs.beets}/bin/beet --config ${beetsConfig} lastgenre --force 'genres::^[^;]+$' || true
-    ${pkgs.beets}/bin/beet --config ${beetsConfig} write || true
-    ${pkgs.beets}/bin/beet --config ${beetsLidarrConfig} fetchart || true
-    ${pkgs.beets}/bin/beet --config ${beetsLidarrConfig} lastgenre || true
-    ${pkgs.beets}/bin/beet --config ${beetsLidarrConfig} lastgenre --force 'genres::^[^;]+$' || true
-    ${pkgs.beets}/bin/beet --config ${beetsLidarrConfig} write || true
-    # fetchart downloads via a 0600 temp file and renames it — fix the mode
-    find "${musicDir}" -name cover.jpg -user beets -exec chmod 664 {} + 2>/dev/null || true
-  '';
 in {
   nixarr = {
     enable = true;
@@ -170,18 +40,6 @@ in {
     vpn = {
       enable = false;
       wgConf = "/data/.secret/wg.conf";
-    };
-
-    jellyfin = {
-      enable = true;
-      # Do NOT open 8096/8920 to the world: everything goes through nginx + TLS.
-      # Tailscale still reaches Jellyfin directly (tailscale0 is a trusted iface).
-      openFirewall = false;
-      expose.https = {
-        enable = true;
-        domainName = "jellyfin.adamjasinski.xyz";
-        acmeMail = "adam@jasinski.lt";
-      };
     };
 
     seerr = {
@@ -211,6 +69,9 @@ in {
 
     lidarr = {
       enable = true;
+      # Lidarr *nightly*: plugin support (needed for the slskd plugin —
+      # Soulseek as indexer + download client) is not in the stable channel.
+      package = pkgs.lidarr-nightly;
     };
 
     sabnzbd = {
@@ -235,6 +96,25 @@ in {
     sonarr.enable = true;
   };
 
+  # ===================================================================
+  # nixarr → mediastack migration. Services move here one at a time as
+  # they are removed from the nixarr block above; state dirs and uids are
+  # identical, so each move is a drop-in replacement.
+  # ===================================================================
+  services.mediastack = {
+    enable = true;
+
+    jellyfin = {
+      enable = true;
+      # Do NOT open 8096/8920 to the world: everything goes through nginx +
+      # TLS (vhost is hand-written below). Tailscale still reaches Jellyfin
+      # directly (tailscale0 is a trusted iface).
+      openFirewall = false;
+      # opens 80/443 for the nginx vhost + ACME
+      exposeHttps = true;
+    };
+  };
+
   # Reclaimerr is not supported by nixarr yet, but follows its state and media
   # ownership conventions. It needs media-group access to remove sidecar files
   # itself when it deletes or moves a library item.
@@ -249,16 +129,15 @@ in {
     "d '${reclaimerrStateDir}' 0750 reclaimerr reclaimerr - -"
     "d '${slskdStateDir}' 0770 slskd media - -"
     "d '${slskdStateDir}/incomplete' 0770 slskd media - -"
-    # setgid so downloads created by slskd (primary group 'slskd') inherit the
-    # media group, letting beets/explo move and retag them
+    # setgid so downloads created by slskd (primary group 'slskd') inherit
+    # the media group, letting lidarr/explo move and retag them
     "d '${slskdDownloadsDir}' 2775 slskd media - -"
     "d '${exploStateDir}' 0770 explo media - -"
     "d '${exploStateDir}/config' 0770 explo media - -"
     "d '${exploStateDir}/cache' 0770 explo media - -"
-    "d '${beetsStateDir}' 0770 beets media - -"
     # explo downloads into a subfolder of the music library
     "d '${musicDir}/explo' 0775 explo media - -"
-    # Lidarr's own subtree, kept separate from the slskd/beets-managed part
+    # Lidarr's own subtree, kept separate from the slskd-managed part
     "d '${musicDir}/lidarr' 0775 lidarr media - -"
     # explo exec's `python3 search_ytmusic.py` from its working directory
     "L+ '${exploStateDir}/search_ytmusic.py' - - - - ${pkgs.explo}/share/explo/search_ytmusic.py"
@@ -303,7 +182,12 @@ in {
 
   # ===================================================================
   # Music stack: slskd (Soulseek) + Navidrome + Explo.
-  # Lidarr is enabled through nixarr above (port 8686).
+  # Lidarr is enabled through nixarr above (port 8686), running the nightly
+  # build so the slskd plugin (Soulseek indexer + download client) can be
+  # installed from System > Plugins:
+  #   https://github.com/allquiet-hub/Lidarr.Plugin.Slskd
+  # (add both the indexer and the download client in Lidarr; point them at
+  # localhost:5030 with a readwrite slskd API key).
   # ===================================================================
 
   # slskd: Soulseek daemon with a web UI on port 5030 (tailscale-only).
@@ -332,7 +216,7 @@ in {
   # Share read access to the music library; downloads dir is group-writable
   # for the media group so explo can migrate completed files into the library.
   users.users.slskd.extraGroups = ["media"];
-  # Group-writable downloads so beets can retag/move them (media group).
+  # Group-writable downloads so lidarr/explo can move and retag them.
   systemd.services.slskd.serviceConfig.UMask = "0002";
 
   # Navidrome: music streaming server (Subsonic API + web UI on 4533).
@@ -402,103 +286,6 @@ in {
     };
   };
 
-  users.users.beets = {
-    isSystemUser = true;
-    group = "media";
-  };
-
-  systemd.services.beets-import = {
-    description = "beets auto-import of slskd downloads into the music library";
-    after = ["network-online.target"];
-    wants = ["network-online.target"];
-    environment.HOME = beetsStateDir;
-    serviceConfig = {
-      Type = "oneshot";
-      User = "beets";
-      Group = "media";
-      UMask = "0002";
-      # beets prunes the emptied inbox, but slskd needs it to exist — recreate
-      # it before each run ('+' prefix: this command runs as root)
-      ExecStartPre = "+${pkgs.coreutils}/bin/install -d -o slskd -g media -m 2775 ${slskdDownloadsDir}";
-      ExecStart = "${beetsImportScript}";
-      NoNewPrivileges = true;
-      PrivateTmp = true;
-      ProtectHome = true;
-      ProtectSystem = "strict";
-      ReadWritePaths = [musicDir beetsStateDir];
-    };
-  };
-
-  systemd.timers.beets-import = {
-    description = "Periodically import slskd downloads with beets";
-    wantedBy = ["timers.target"];
-    timerConfig = {
-      OnBootSec = "10min";
-      OnUnitActiveSec = "5min";
-      RandomizedDelaySec = "1min";
-      Persistent = true;
-    };
-  };
-
-  systemd.services.beets-lidarr = {
-    description = "beets in-place curation of the Lidarr music subtree";
-    after = ["network-online.target"];
-    wants = ["network-online.target"];
-    environment.HOME = beetsStateDir;
-    serviceConfig = {
-      Type = "oneshot";
-      User = "beets";
-      Group = "media";
-      UMask = "0002";
-      ExecStart = "${beetsLidarrScript}";
-      NoNewPrivileges = true;
-      PrivateTmp = true;
-      ProtectHome = true;
-      ProtectSystem = "strict";
-      ReadWritePaths = ["${musicDir}/lidarr" beetsStateDir];
-    };
-  };
-
-  systemd.timers.beets-lidarr = {
-    description = "Periodically curate the Lidarr subtree with beets";
-    wantedBy = ["timers.target"];
-    timerConfig = {
-      OnBootSec = "15min";
-      OnUnitActiveSec = "15min";
-      RandomizedDelaySec = "2min";
-      Persistent = true;
-    };
-  };
-
-  # Manual curation: stable config paths + beet binary + one-shot service.
-  # Quick fix for missing covers/genres:
-  #   sudo systemctl start beets-curate
-  # Full manual control:
-  #   sudo -u beets env HOME=/data/media/.state/nixarr/beets \
-  #     beet --config /etc/beets/music-library.yaml <command>
-  environment.etc."beets/music-library.yaml".source = beetsConfig;
-  environment.etc."beets/lidarr-library.yaml".source = beetsLidarrConfig;
-  environment.systemPackages = [pkgs.beets];
-
-  systemd.services.beets-curate = {
-    description = "beets: fetch missing covers and genres for the whole library";
-    after = ["network-online.target"];
-    wants = ["network-online.target"];
-    environment.HOME = beetsStateDir;
-    serviceConfig = {
-      Type = "oneshot";
-      User = "beets";
-      Group = "media";
-      UMask = "0002";
-      ExecStart = "${beetsCurateScript}";
-      NoNewPrivileges = true;
-      PrivateTmp = true;
-      ProtectHome = true;
-      ProtectSystem = "strict";
-      ReadWritePaths = [musicDir beetsStateDir];
-    };
-  };
-
   # nixpkgs' sabnzbd module only merges `settings` into sabnzbd.ini when
   # configFile is null — it defaults to non-null for stateVersion < 26.05,
   # which would silently ignore the category below (and nixarr's settings).
@@ -519,12 +306,12 @@ in {
   };
 
   # Lidarr-managed music lives in its own subtree, separate from the
-  # slskd/beets-managed part of the library (everything stays inside
+  # slskd/explo-managed part of the library (everything stays inside
   # musicDir so Navidrome scans it all).
-  # NOTE: beets and explo run with primary group "media" (like nixarr's *arr
-  # users) so every service in the music pipeline can write into each other's
-  # directories — otherwise e.g. beets-created artist folders block Lidarr
-  # imports with "Permissions error".
+  # NOTE: explo runs with primary group "media" (like nixarr's *arr users,
+  # incl. lidarr) so every service in the music pipeline can write into each
+  # other's directories — otherwise e.g. explo-created artist folders block
+  # Lidarr imports with "Permissions error".
 
   # Jellyfin keeps its settings in mutable XML files, so patch the two values
   # that matter for remote playback on every service start. Everything else in

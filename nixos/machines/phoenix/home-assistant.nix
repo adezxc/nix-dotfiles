@@ -16,6 +16,7 @@
     ];
     config = {
       default_config = {};
+      http.server_port = 8123;
       homeassistant = {
         name = "Home";
         latitude = "54.71";

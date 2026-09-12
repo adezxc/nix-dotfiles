@@ -1,4 +1,8 @@
-{ inputs, pkgs, ... }: {
+{
+  inputs,
+  pkgs,
+  ...
+}: {
   programs.nixvim = {
     enable = true;
     defaultEditor = true;
@@ -80,10 +84,10 @@
         enable = true;
         settings = {
           sources = [
-            { name = "nvim_lsp"; }
-            { name = "luasnip"; }
-            { name = "buffer"; }
-            { name = "path"; }
+            {name = "nvim_lsp";}
+            {name = "luasnip";}
+            {name = "buffer";}
+            {name = "path";}
           ];
           mapping = {
             "<C-Space>" = "cmp.mapping.complete()";
@@ -149,8 +153,8 @@
         enable = true;
         settings = {
           formatters_by_ft = {
-            go = [ "goimports" "gofmt" ];
-            nix = [ "alejandra" ];
+            go = ["goimports" "gofmt"];
+            nix = ["alejandra"];
           };
           format_on_save = {
             timeout_ms = 1000;

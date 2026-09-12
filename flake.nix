@@ -19,6 +19,12 @@
 
     nixarr.url = "github:rasmus-kirk/nixarr";
 
+    # Pinned nixpkgs for Jellyfin: the regular nixpkgs input now carries
+    # Jellyfin 12, which nixarr does not support yet (nixarr-py's openapi
+    # hashes stop at 10.11.11). Pin the last pre-12 rev until nixarr catches
+    # up, then drop this input and the `jellyfin` override in overlays.
+    nixpkgs-jellyfin.url = "github:NixOS/nixpkgs/1b9ee7042b08174e1b6f1f79cd4c299f53b3f8e7";
+
     agenix.url = "github:ryantm/agenix";
 
     microvm.url = "github:microvm-nix/microvm.nix";
