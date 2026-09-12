@@ -335,6 +335,12 @@ in {
           dataDir = "${stateDir}/prowlarr";
           openFirewall = cfg.prowlarr.openFirewall;
         };
+        # The nixpkgs module runs prowlarr with DynamicUser; with a static
+        # user in place, User=/Group= below win — but nothing creates the
+        # state dir with the right owner (nixarr had this tmpfiles rule).
+        systemd.tmpfiles.rules = [
+          "d '${stateDir}/prowlarr' 0700 prowlarr root - -"
+        ];
         systemd.services.prowlarr.serviceConfig = {
           User = "prowlarr";
           Group = "prowlarr";
