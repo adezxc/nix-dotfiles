@@ -3,7 +3,8 @@
   lib,
   pkgs,
   ...
-}: let
+}:
+let
   jellyfinConfigDir = "${config.services.mediastack.stateDir}/jellyfin/config";
   reclaimerrStateDir = "${config.services.mediastack.stateDir}/reclaimerr";
   reclaimerrPort = 8000;
@@ -20,6 +21,76 @@
   navidromePort = 4533;
   musicDir = "${config.services.mediastack.mediaDir}/library/music";
 
+  # --- Dispatcharr (IPTV / stream management) ---
+  # Packaged natively in pkgs/dispatcharr.nix: Django + gunicorn/gevent for
+  # HTTP, daphne for websockets, celery (default + dvr queues + beat) for
+  # background work, PostgreSQL for state, Redis as celery broker, channel
+  # layer and cache. The upstream /data prefix is baked into this build via
+  # the dataDir argument.
+  dispatcharrStateDir = "${config.services.mediastack.stateDir}/dispatcharr";
+  # gunicorn (internal; Dispatcharr's aio mode expects celery to reach the
+  # TS proxy on 127.0.0.1:5656, matching upstream's uwsgi http port)
+  dispatcharrPort = 5656;
+  # daphne (internal, websockets)
+  dispatcharrWsPort = 8001;
+  dispatcharr = (pkgs.callPackage ../../../pkgs/dispatcharr.nix { }) {
+    dataDir = dispatcharrStateDir;
+  };
+  dispatcharrStaticDir = "${dispatcharr}/share/dispatcharr/static";
+
+  # Shared by the web/daphne/celery units. The Django secret lives in
+  # ${dispatcharrStateDir}/env (generated on first boot by
+  # dispatcharr-init.service) and is added via EnvironmentFile.
+  dispatcharrEnv = {
+    # aio = celery reaches the web server directly on 127.0.0.1 (see
+    # get_dvr_stream_base_url); trusted proxies default to loopback, so the
+    # app sees real client IPs behind nginx.
+    DISPATCHARR_ENV = "aio";
+    DJANGO_SETTINGS_MODULE = "dispatcharr.settings";
+    POSTGRES_DB = "dispatcharr";
+    POSTGRES_USER = "dispatcharr";
+    # Unix socket + peer auth, no password needed
+    POSTGRES_HOST = "/run/postgresql";
+    REDIS_HOST = "127.0.0.1";
+    REDIS_PORT = "6379";
+    TZ = config.time.timeZone;
+    DISPATCHARR_TIME_ZONE = config.time.timeZone;
+    DISPATCHARR_LOG_LEVEL = "INFO";
+    # nginx serves /protected-backups/ for X-Accel-Redirect backup downloads
+    USE_NGINX_ACCEL = "true";
+    DISPATCHARR_MEDIA_ROOT = "${dispatcharrStateDir}/media";
+  };
+
+  # Stream profiles exec ffmpeg / streamlink / yt-dlp as subprocesses. The
+  # systemd module defines its own PATH default, hence mkForce.
+  dispatcharrBinPath = lib.mkForce (
+    lib.makeBinPath [
+      pkgs.ffmpeg
+      pkgs.streamlink
+      pkgs.yt-dlp
+      pkgs.coreutils
+    ]
+  );
+
+  # Shared service hardening for the long-running units. /run/dispatcharr is
+  # created via RuntimeDirectory (gunicorn worker tmp dir + sockets).
+  dispatcharrServiceConfig = {
+    User = "dispatcharr";
+    Group = "dispatcharr";
+    UMask = "0007";
+    RuntimeDirectory = "dispatcharr";
+    RuntimeDirectoryMode = "0750";
+    EnvironmentFile = "${dispatcharrStateDir}/env";
+    KillMode = "mixed";
+    Restart = "on-failure";
+    RestartSec = "5s";
+    NoNewPrivileges = true;
+    PrivateTmp = true;
+    ProtectHome = true;
+    ProtectSystem = "strict";
+    ReadWritePaths = [ dispatcharrStateDir ];
+  };
+
   # Upper bound (bits/s) for clients that are *not* on the local network.
   # Keeps the web client's auto-quality picker from choosing a bitrate that the
   # real-world peering between ISPs cannot sustain (-> endless buffering).
@@ -30,8 +101,12 @@
   # Addresses nginx talks to Jellyfin from. Without these in KnownProxies,
   # Jellyfin sees every remote user as 127.0.0.1 (a "local" client) and skips
   # all remote bandwidth management.
-  jellyfinKnownProxies = ["127.0.0.1" "::1"];
-in {
+  jellyfinKnownProxies = [
+    "127.0.0.1"
+    "::1"
+  ];
+in
+{
   # ===================================================================
   # Media stack (formerly the `nixarr` module): stock nixpkgs service
   # modules + the glue in modules/nixos/mediastack.nix. State dirs and uids
@@ -100,11 +175,11 @@ in {
   # Reclaimerr follows the mediastack state and media
   # ownership conventions. It needs media-group access to remove sidecar files
   # itself when it deletes or moves a library item.
-  users.groups.reclaimerr = {};
+  users.groups.reclaimerr = { };
   users.users.reclaimerr = {
     isSystemUser = true;
     group = "reclaimerr";
-    extraGroups = ["media"];
+    extraGroups = [ "media" ];
   };
 
   systemd.tmpfiles.rules = [
@@ -123,13 +198,29 @@ in {
     "d '${musicDir}/lidarr' 0775 lidarr media - -"
     # explo exec's `python3 search_ytmusic.py` from its working directory
     "L+ '${exploStateDir}/search_ytmusic.py' - - - - ${pkgs.explo}/share/explo/search_ytmusic.py"
+    # Dispatcharr state tree (subdirectory names match upstream's /data layout:
+    # m3u/EPG uploads, channel logos, DVR recordings, plugins, backups, logs)
+    "d '${dispatcharrStateDir}' 0750 dispatcharr dispatcharr - -"
+    "d '${dispatcharrStateDir}/logos' 0750 dispatcharr dispatcharr - -"
+    "d '${dispatcharrStateDir}/recordings' 0770 dispatcharr dispatcharr - -"
+    "d '${dispatcharrStateDir}/uploads/m3us' 0750 dispatcharr dispatcharr - -"
+    "d '${dispatcharrStateDir}/uploads/epgs' 0750 dispatcharr dispatcharr - -"
+    "d '${dispatcharrStateDir}/m3us' 0750 dispatcharr dispatcharr - -"
+    "d '${dispatcharrStateDir}/epgs' 0750 dispatcharr dispatcharr - -"
+    "d '${dispatcharrStateDir}/plugins' 0750 dispatcharr dispatcharr - -"
+    "d '${dispatcharrStateDir}/backups' 0750 dispatcharr dispatcharr - -"
+    "d '${dispatcharrStateDir}/logs' 0750 dispatcharr dispatcharr - -"
+    "d '${dispatcharrStateDir}/media' 0750 dispatcharr dispatcharr - -"
   ];
 
   systemd.services.reclaimerr = {
     description = "Reclaimerr media-library cleanup service";
-    after = ["network-online.target" "systemd-tmpfiles-setup.service"];
-    wants = ["network-online.target"];
-    wantedBy = ["multi-user.target"];
+    after = [
+      "network-online.target"
+      "systemd-tmpfiles-setup.service"
+    ];
+    wants = [ "network-online.target" ];
+    wantedBy = [ "multi-user.target" ];
 
     environment = {
       DATA_DIR = reclaimerrStateDir;
@@ -156,11 +247,14 @@ in {
       PrivateTmp = true;
       ProtectHome = true;
       ProtectSystem = "strict";
-      ReadWritePaths = [reclaimerrStateDir config.services.mediastack.mediaDir];
+      ReadWritePaths = [
+        reclaimerrStateDir
+        config.services.mediastack.mediaDir
+      ];
     };
   };
 
-  networking.firewall.allowedTCPPorts = [reclaimerrPort];
+  networking.firewall.allowedTCPPorts = [ reclaimerrPort ];
 
   # ===================================================================
   # Music stack: slskd (Soulseek) + Navidrome + Explo.
@@ -187,7 +281,7 @@ in {
     openFirewall = true;
     settings = {
       soulseek.description = "phoenix (slskd via NixOS)";
-      shares.directories = [musicDir];
+      shares.directories = [ musicDir ];
       directories = {
         downloads = slskdDownloadsDir;
         incomplete = "${slskdStateDir}/incomplete";
@@ -197,7 +291,7 @@ in {
 
   # Share read access to the music library; downloads dir is group-writable
   # for the media group so explo can migrate completed files into the library.
-  users.users.slskd.extraGroups = ["media"];
+  users.users.slskd.extraGroups = [ "media" ];
   # Group-writable downloads so lidarr/explo can move and retag them.
   systemd.services.slskd.serviceConfig.UMask = "0002";
 
@@ -215,7 +309,7 @@ in {
       ScanSchedule = "@every 5m";
     };
   };
-  users.users.navidrome.extraGroups = ["media"];
+  users.users.navidrome.extraGroups = [ "media" ];
 
   # Explo: ListenBrainz-powered music discovery ("Discover Weekly" for
   # Navidrome). Requests missing tracks from slskd (YouTube fallback) and
@@ -229,20 +323,20 @@ in {
 
   systemd.services.explo = {
     description = "Explo music discovery for Navidrome";
-    after = ["network-online.target"];
-    wants = ["network-online.target"];
-    wantedBy = ["multi-user.target"];
+    after = [ "network-online.target" ];
+    wants = [ "network-online.target" ];
+    wantedBy = [ "multi-user.target" ];
 
     # explo shells out to yt-dlp, ffmpeg and python3 (ytmusicapi fallback for
     # YouTube search when no YOUTUBE_API_KEY is set).
     environment = {
-      PATH =
-        lib.mkForce
-        (lib.makeBinPath [
+      PATH = lib.mkForce (
+        lib.makeBinPath [
           pkgs.ffmpeg
           pkgs.yt-dlp
-          (pkgs.python3.withPackages (ps: [ps.ytmusicapi]))
-        ]);
+          (pkgs.python3.withPackages (ps: [ ps.ytmusicapi ]))
+        ]
+      );
       HOME = exploStateDir;
       XDG_CACHE_HOME = "${exploStateDir}/cache";
       TZ = config.time.timeZone;
@@ -265,6 +359,175 @@ in {
         musicDir
         slskdDownloadsDir
       ];
+    };
+  };
+
+  # Dispatcharr: system user (nginx joins the group to serve /media/ and the
+  # internal /protected-backups/ location from the state tree).
+  users.groups.dispatcharr = { };
+  users.users.dispatcharr = {
+    isSystemUser = true;
+    group = "dispatcharr";
+  };
+  # nginx serves ${dispatcharrStateDir}/media and the internal
+  # /protected-backups/ location straight from disk (0750 dirs).
+  users.users.nginx.extraGroups = [ "dispatcharr" ];
+
+  # PostgreSQL already runs on phoenix (immich); add the dispatcharr DB.
+  # Peer auth over the unix socket, so no password is involved.
+  services.postgresql = {
+    ensureDatabases = [ "dispatcharr" ];
+    ensureUsers = [
+      {
+        name = "dispatcharr";
+        ensureDBOwnership = true;
+      }
+    ];
+  };
+
+  # Redis: celery broker + channels layer + django-redis cache.
+  services.redis.servers.dispatcharr = {
+    enable = true;
+    bind = "127.0.0.1";
+    port = 6379;
+  };
+
+  systemd.services.dispatcharr-init = {
+    description = "Dispatcharr init (Django secret + migrations)";
+    after = [
+      "network-online.target"
+      "postgresql.service"
+      "redis-dispatcharr.service"
+    ];
+    wants = [ "network-online.target" ];
+    wantedBy = [ "multi-user.target" ];
+
+    environment = dispatcharrEnv;
+
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      User = "dispatcharr";
+      Group = "dispatcharr";
+      UMask = "0077";
+    };
+
+    script = ''
+      set -euo pipefail
+
+      # Generate the Django secret key once; every dispatcharr unit sources
+      # it from this file via EnvironmentFile.
+      if [ ! -s '${dispatcharrStateDir}/env' ]; then
+        key="$(${pkgs.openssl}/bin/openssl rand -hex 32)"
+        printf 'DJANGO_SECRET_KEY=%s\n' "$key" > '${dispatcharrStateDir}/env'
+        chmod 600 '${dispatcharrStateDir}/env'
+      fi
+
+      set -a
+      . '${dispatcharrStateDir}/env'
+      set +a
+
+      ${dispatcharr}/bin/dispatcharr-manage migrate --noinput
+    '';
+  };
+
+  systemd.services.dispatcharr-web = {
+    description = "Dispatcharr web (gunicorn, gevent workers)";
+    after = [ "dispatcharr-init.service" ];
+    requires = [ "dispatcharr-init.service" ];
+    wantedBy = [ "multi-user.target" ];
+
+    environment = dispatcharrEnv // {
+      PATH = dispatcharrBinPath;
+    };
+
+    serviceConfig = dispatcharrServiceConfig // {
+      # NO --preload: the gevent worker monkey-patches the interpreter in
+      # init_process, which must happen before the Django app is imported.
+      ExecStart =
+        "${dispatcharr}/bin/dispatcharr-gunicorn dispatcharr.wsgi:application"
+        + " --worker-class gevent --workers 4"
+        + " --bind 127.0.0.1:${toString dispatcharrPort}"
+        + " --timeout 120 --graceful-timeout 30"
+        + " --worker-tmp-dir /run/dispatcharr";
+    };
+  };
+
+  systemd.services.dispatcharr-daphne = {
+    description = "Dispatcharr websockets (daphne ASGI)";
+    after = [ "dispatcharr-init.service" ];
+    requires = [ "dispatcharr-init.service" ];
+    wantedBy = [ "multi-user.target" ];
+
+    environment = dispatcharrEnv;
+
+    serviceConfig = dispatcharrServiceConfig // {
+      ExecStart =
+        "${dispatcharr}/bin/dispatcharr-daphne"
+        + " -b 127.0.0.1 -p ${toString dispatcharrWsPort}"
+        + " dispatcharr.asgi:application";
+    };
+  };
+
+  systemd.services.dispatcharr-worker = {
+    description = "Dispatcharr celery worker (default queue)";
+    after = [
+      "dispatcharr-init.service"
+      "redis-dispatcharr.service"
+    ];
+    requires = [ "dispatcharr-init.service" ];
+    wantedBy = [ "multi-user.target" ];
+
+    environment = dispatcharrEnv // {
+      PATH = dispatcharrBinPath;
+    };
+
+    serviceConfig = dispatcharrServiceConfig // {
+      ExecStart =
+        "${dispatcharr}/bin/dispatcharr-celery"
+        + " -A dispatcharr worker -Q celery -n default@${config.networking.hostName} --autoscale=4,1";
+      Nice = 5;
+    };
+  };
+
+  systemd.services.dispatcharr-dvr = {
+    description = "Dispatcharr celery worker (dvr queue)";
+    after = [
+      "dispatcharr-init.service"
+      "redis-dispatcharr.service"
+      "dispatcharr-web.service"
+    ];
+    requires = [ "dispatcharr-init.service" ];
+    wantedBy = [ "multi-user.target" ];
+
+    environment = dispatcharrEnv // {
+      PATH = dispatcharrBinPath;
+    };
+
+    serviceConfig = dispatcharrServiceConfig // {
+      # Thread pool: the run_recording task is long-running and I/O bound
+      # (it drives ffmpeg against the TS proxy served by dispatcharr-web).
+      ExecStart =
+        "${dispatcharr}/bin/dispatcharr-celery"
+        + " -A dispatcharr worker -Q dvr -n dvr@${config.networking.hostName} --pool=threads --concurrency=20";
+      Nice = 5;
+    };
+  };
+
+  systemd.services.dispatcharr-beat = {
+    description = "Dispatcharr celery beat scheduler";
+    after = [
+      "dispatcharr-init.service"
+      "redis-dispatcharr.service"
+    ];
+    requires = [ "dispatcharr-init.service" ];
+    wantedBy = [ "multi-user.target" ];
+
+    environment = dispatcharrEnv;
+
+    serviceConfig = dispatcharrServiceConfig // {
+      ExecStart = "${dispatcharr}/bin/dispatcharr-celery -A dispatcharr beat -l info";
+      Nice = 5;
     };
   };
 
@@ -312,7 +575,9 @@ in {
       "$xml" ed -L \
         -d '/NetworkConfiguration/KnownProxies' \
         -s '/NetworkConfiguration' -t elem -n KnownProxies -v "" \
-    ${lib.concatMapStringsSep "\n" (proxy: "        -s '/NetworkConfiguration/KnownProxies' -t elem -n string -v '${proxy}' \\") jellyfinKnownProxies}
+    ${lib.concatMapStringsSep "\n" (
+      proxy: "        -s '/NetworkConfiguration/KnownProxies' -t elem -n string -v '${proxy}' \\"
+    ) jellyfinKnownProxies}
         "$network_xml"
     fi
 
@@ -466,6 +731,64 @@ in {
                proxy_set_header   Connection "upgrade";
                proxy_redirect     off;
       '';
+    };
+
+    virtualHosts."iptv.adamjasinski.xyz" = {
+      enableACME = true;
+      forceSSL = true;
+
+      # m3u/EPG uploads and logo uploads go through the proxy
+      extraConfig = ''
+        client_max_body_size 0;
+
+        proxy_connect_timeout 75;
+        proxy_send_timeout 300;
+        proxy_read_timeout 300;
+      '';
+
+      locations."/" = {
+        proxyPass = "http://127.0.0.1:${toString dispatcharrPort}";
+        # Live streams are long-lived chunked responses: pass them straight
+        # through instead of buffering (same reasoning as the Jellyfin vhost).
+        extraConfig = ''
+          proxy_buffering off;
+          proxy_request_buffering off;
+        '';
+      };
+
+      # WebSockets (live stats, notifications)
+      locations."/ws/" = {
+        proxyPass = "http://127.0.0.1:${toString dispatcharrWsPort}";
+        proxyWebsockets = true;
+      };
+
+      # Collected at build time by the package — immutable, cacheable
+      locations."/static/" = {
+        alias = "${dispatcharrStaticDir}/";
+        extraConfig = ''
+          expires 7d;
+        '';
+      };
+
+      locations."/assets/" = {
+        alias = "${dispatcharrStaticDir}/assets/";
+        extraConfig = ''
+          expires 7d;
+        '';
+      };
+
+      locations."/media/" = {
+        alias = "${dispatcharrStateDir}/media/";
+      };
+
+      # Internal: Django authorizes backup downloads and redirects here
+      # (USE_NGINX_ACCEL=true), nginx serves the file directly.
+      locations."/protected-backups/" = {
+        alias = "${dispatcharrStateDir}/backups/";
+        extraConfig = ''
+          internal;
+        '';
+      };
     };
 
     virtualHosts."freshrss.adamjasinski.xyz" = {

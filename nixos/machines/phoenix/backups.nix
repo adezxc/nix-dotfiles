@@ -18,6 +18,10 @@
     exclude = [
       "/data/media/.state/nixarr/jellyfin/cache"
       "/data/media/.state/nixarr/jellyfin/log"
+      # Dispatcharr: the Postgres dump below captures all state; recordings
+      # are large, re-recordable media and logs are churn.
+      "/data/media/.state/nixarr/dispatcharr/recordings"
+      "/data/media/.state/nixarr/dispatcharr/logs"
     ];
 
     # Retention: fine granularity for recent accidents, monthlies for a
@@ -38,7 +42,10 @@
   services.postgresqlBackup = {
     enable = true;
     location = "/var/backup/postgresql";
-    databases = ["immich"];
+    databases = [
+      "immich"
+      "dispatcharr"
+    ];
     startAt = "*-*-* 23:30:00";
   };
 }
