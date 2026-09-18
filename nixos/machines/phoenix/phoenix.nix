@@ -22,6 +22,8 @@
     ./metrics.nix
     # nixarr replacement — inert until services.mediastack.enable = true
     outputs.nixosModules.mediastack
+    # native Dispatcharr deployment — inert until services.dispatcharr.enable
+    outputs.nixosModules.dispatcharr
   ];
 
   networking.hostName = "phoenix";
