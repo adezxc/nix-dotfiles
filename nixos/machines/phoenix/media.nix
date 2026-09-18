@@ -279,17 +279,6 @@ in
     };
   };
 
-  # ===================================================================
-  # Dispatcharr: IPTV / stream management (the *arr of live TV).
-  # Everything (package, redis, postgres, celery units, nginx vhost) lives
-  # in modules/nixos/dispatcharr.nix; see its header comment for details.
-  # ===================================================================
-  services.dispatcharr = {
-    enable = true;
-    stateDir = "${config.services.mediastack.stateDir}/dispatcharr";
-    domain = "iptv.adamjasinski.xyz";
-  };
-
   # nixpkgs' sabnzbd module only merges `settings` into sabnzbd.ini when
   # configFile is null — it defaults to non-null for stateVersion < 26.05,
   # which would silently ignore the category below (and the mediastack

@@ -18,10 +18,13 @@
     exclude = [
       "/data/media/.state/nixarr/jellyfin/cache"
       "/data/media/.state/nixarr/jellyfin/log"
-      # Dispatcharr: the Postgres dump below captures all state; recordings
-      # are large, re-recordable media and logs are churn.
+      # Dispatcharr: the in-app backups it writes to its state dir cover the
+      # database; recordings are large, re-recordable media, and the logs
+      # and the container's live postgres data dir are churn that isn't
+      # safely restorable anyway.
       "/data/media/.state/nixarr/dispatcharr/recordings"
       "/data/media/.state/nixarr/dispatcharr/logs"
+      "/data/media/.state/nixarr/dispatcharr/db"
     ];
 
     # Retention: fine granularity for recent accidents, monthlies for a
@@ -38,14 +41,13 @@
 
   # Live postgres files are not safely copyable — dump the databases
   # instead. Runs at 23:30, ahead of the 00:00 restic backup, so each
-  # nightly snapshot contains the same evening's dumps.
+  # nightly snapshot contains the same evening's dumps. (Dispatcharr's
+  # postgres runs inside its own container; its state is covered by the
+  # restic path above through the in-app /data/backups.)
   services.postgresqlBackup = {
     enable = true;
     location = "/var/backup/postgresql";
-    databases = [
-      "immich"
-      "dispatcharr"
-    ];
+    databases = ["immich"];
     startAt = "*-*-* 23:30:00";
   };
 }

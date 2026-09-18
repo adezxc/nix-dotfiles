@@ -3,5 +3,4 @@
 {
   # List your module files here
   mediastack = ./mediastack.nix;
-  dispatcharr = ./dispatcharr.nix;
 }

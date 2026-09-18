@@ -3,5 +3,4 @@
 pkgs: {
   reclaimerr = pkgs.callPackage ./reclaimerr.nix { };
   lidarr-nightly = pkgs.callPackage ./lidarr-nightly.nix { };
-  dispatcharr = pkgs.callPackage ./dispatcharr.nix { };
 }
