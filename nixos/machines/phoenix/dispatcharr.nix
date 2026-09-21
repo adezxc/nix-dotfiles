@@ -31,12 +31,15 @@ in {
     # digest-pinned 0.31.0 (see header)
     image = "ghcr.io/dispatcharr/dispatcharr:latest@sha256:f81924fa3dbfeb463b3908be7e086bf58aacbd2ba56062bfb555ee3a471acf8f";
 
-    # Run the container's processes (nginx/uwsgi/celery/postgres) as this
-    # user instead of the default 1000 (= adam on this machine), so files
-    # in the state dir get a stable, dedicated owner.
+    # Run the container's processes (nginx/uwsgi/celery/postgres) as the
+    # dispatcharr user instead of the default 1000 (= adam on this machine),
+    # so files in the state dir get a stable, dedicated owner. PGID is the
+    # shared `media` group (fixed gid 169, see mediastack.nix), so everything
+    # the container writes — DVR recordings especially — is group-readable
+    # by the other media services, matching the mediastack conventions.
     environment = {
-      PUID = "271";
-      PGID = "271";
+      PUID = toString config.users.users.dispatcharr.uid;
+      PGID = toString config.users.groups.media.gid;
       TZ = config.time.timeZone;
     };
 
@@ -65,12 +68,18 @@ in {
   users.users.dispatcharr = {
     isSystemUser = true;
     group = "dispatcharr";
+    # media group access on the host side (the container gets it via PGID)
+    extraGroups = ["media"];
+    # Fixed uid: baked into PUID above. NOTE: NixOS activation never changes
+    # the uid of an existing user — if this ever needs to change, usermod
+    # manually on the host and chown the state dir.
     uid = 271;
   };
 
   systemd.tmpfiles.rules = [
-    "d '${stateDir}' 0750 dispatcharr dispatcharr - -"
-    "d '${stateDir}/recordings' 0770 dispatcharr dispatcharr - -"
+    "d '${stateDir}' 0770 dispatcharr media - -"
+    # setgid: subdirectories created by the container inherit the media group
+    "d '${stateDir}/recordings' 2770 dispatcharr media - -"
   ];
 
   services.nginx.virtualHosts."iptv.adamjasinski.xyz" = {
