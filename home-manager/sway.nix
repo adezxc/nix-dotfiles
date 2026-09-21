@@ -582,7 +582,7 @@ in {
             }
             {
               criteria = "Dell Inc. DELL U2722DE BH169H3";
-              status = "disable";
+              status = "enable";
             }
           ];
           exec = let
@@ -599,15 +599,15 @@ in {
             "${sm} workspace 5"
             "${sm} move workspace to HDMI-A-1 number 5"
             "${sm} workspace 6"
-            "${sm} move workspace to DP-2 number 6"
+            "${sm} move workspace to HDMI-A-1 number 6"
             "${sm} workspace 7"
             "${sm} move workspace to DP-2 number 7"
             "${sm} workspace 8"
             "${sm} move workspace to DP-2 number 8"
             "${sm} workspace 9"
-            "${sm} move workspace to DP-2 number 9"
+            "${sm} move workspace to HDMI-A-1 number 9"
             "${sm} workspace 10"
-            "${sm} move workspace to DP-2 number 10"
+            "${sm} move workspace to HDMI-A-1 number 10"
             "${sm} workspace number 1 output HDMI-A-1"
             "${sm} workspace number 2 output HDMI-A-1"
             "${sm} workspace number 3 output HDMI-A-1"
@@ -616,8 +616,8 @@ in {
             "${sm} workspace number 6 output DP-2"
             "${sm} workspace number 7 output DP-2"
             "${sm} workspace number 8 output DP-2"
-            "${sm} workspace number 9 output DP-2"
-            "${sm} workspace number 10 output DP-2"
+            "${sm} workspace number 9 output HDMI-A-1"
+            "${sm} workspace number 10 output HDMI-A-1"
           ];
         };
       }
