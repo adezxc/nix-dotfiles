@@ -56,5 +56,10 @@
     playwright-driver
 
     mermaid-cli
+
+    lutris
+    protonup-qt
+    gamescope
+    mangohud
   ];
 }
