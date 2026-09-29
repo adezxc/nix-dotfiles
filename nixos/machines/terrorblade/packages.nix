@@ -14,8 +14,6 @@
     firefox
     chromium
 
-    comma
-
     networkmanagerapplet
 
     nodejs_latest
@@ -50,6 +48,7 @@
     claude-code
     codex
     pi-coding-agent
+    herdr
 
     obs-studio
     playwright

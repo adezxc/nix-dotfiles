@@ -202,6 +202,14 @@ in {
 
   wayland.windowManager.sway = {
     enable = true;
+
+    # Make Electron apps (Slack, Discord, etc.) use their native Wayland
+    # backend instead of XWayland, which renders at 1x and gets upscaled
+    # (blurry) on fractionally scaled outputs.
+    extraSessionCommands = ''
+      export ELECTRON_OZONE_PLATFORM_HINT=wayland
+    '';
+
     config = {
       modifier = "Mod4";
       terminal = "${pkgs.ghostty}/bin/ghostty";
@@ -632,6 +640,24 @@ in {
             {
               criteria = "Samsung Electric Company LS34A650U HNTR302475";
               status = "enable";
+            }
+          ];
+        };
+      }
+      {
+        profile = {
+          name = "office2";
+          outputs = [
+            {
+              criteria = "Lenovo Group Limited 0x403D Unknown";
+              status = "disable";
+            }
+            {
+              criteria = "LG Electronics LG ULTRAFINE 109NTQDQC932";
+              status = "enable";
+              mode = "3840x2160@59.997Hz";
+              position = "0,0";
+              scale = 1.5;
             }
           ];
         };
