@@ -31,6 +31,7 @@ in {
 
   # Ghostty terminal configuration
   xdg.configFile."ghostty/config".text = ''
+    font-family = Iosevka
     quit-after-last-window-closed = true
     quit-after-last-window-closed-delay = 5m
     window-inherit-working-directory = false
@@ -80,7 +81,7 @@ in {
 
   xdg.configFile."wofi/style.css".text = ''
     * {
-        font-family: "Hack", monospace;
+        font-family: "Iosevka", monospace;
         font-size: 14px;
     }
 
@@ -206,8 +207,11 @@ in {
     # Make Electron apps (Slack, Discord, etc.) use their native Wayland
     # backend instead of XWayland, which renders at 1x and gets upscaled
     # (blurry) on fractionally scaled outputs.
+    #
+    # Bigger cursor: 24 is small on the fractionally scaled outputs.
     extraSessionCommands = ''
       export ELECTRON_OZONE_PLATFORM_HINT=wayland
+      export XCURSOR_SIZE=48
     '';
 
     config = {
@@ -219,7 +223,7 @@ in {
       workspaceLayout = "tabbed";
 
       fonts = {
-        names = ["MesloLGS Nerd Font" "Hack"];
+        names = ["Iosevka"];
         size = 11.0;
       };
 

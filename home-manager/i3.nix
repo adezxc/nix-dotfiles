@@ -85,7 +85,7 @@
 
         separator = "|";
 
-        font-0 = "FiraCode Nerd Font:pixelsize=12;0";
+        font-0 = "Iosevka:pixelsize=12;0";
         font-2 = "Siji:pixelsize=12;0";
       };
 

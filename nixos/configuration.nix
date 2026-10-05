@@ -31,7 +31,6 @@
     settings = {
       experimental-features = ["nix-command flakes"];
       flake-registry = "";
-      nix-path = config.nix.nixPath;
       trusted-users = [
         "adam"
       ];
@@ -39,7 +38,6 @@
     channel.enable = false;
 
     registry = lib.mapAttrs (_: flake: {inherit flake;}) flakeInputs;
-    nixPath = lib.mapAttrsToList (n: _: "${n}=flake:${n}") flakeInputs;
   };
 
   users.users = {
@@ -65,12 +63,14 @@
     };
   };
 
-  fonts.packages = with pkgs;
-    [
-      siji
-      pango
-    ]
-    ++ builtins.filter lib.attrsets.isDerivation (builtins.attrValues pkgs.nerd-fonts);
+  fonts.packages = with pkgs; [
+    siji
+    pango
+    iosevka
+    # All nerd-font icons as a fallback font (a few MiB instead of
+    # installing every patched nerd font family, ~8.4 GiB).
+    nerd-fonts.symbols-only
+  ];
 
   services.tailscale.enable = true;
 

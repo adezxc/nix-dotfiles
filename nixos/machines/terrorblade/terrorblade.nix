@@ -82,8 +82,6 @@
 
   # Fonts
   fonts.packages = with pkgs; [
-    meslo-lgs-nf
-    hack-font
     noto-fonts
     noto-fonts-color-emoji
   ];

@@ -9,7 +9,7 @@
 
       config.color_scheme = 'Catppuccin Mocha'
 
-      config.font = wezterm.font 'FiraCode Nerd Font'
+      config.font = wezterm.font 'Iosevka'
 
       config.front_end = "WebGpu"
 
