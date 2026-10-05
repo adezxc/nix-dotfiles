@@ -47,6 +47,17 @@
 
   time.timeZone = "Europe/Vilnius";
 
+  # Swap Caps Lock <-> Escape on the built-in laptop keyboard only, at the
+  # kernel/evdev level (udev hwdb), so it works independently of niri's
+  # single global xkb config. External USB keyboards are unaffected.
+  # `atkbd` matches the internal "AT Translated Set 2 keyboard".
+  # Scancodes (from `evtest`, MSC_SCAN): 0x3a = Caps Lock, 0x01 = Escape.
+  services.udev.extraHwdb = ''
+    evdev:atkbd:*
+     KEYBOARD_KEY_3a=esc
+     KEYBOARD_KEY_01=capslock
+  '';
+
   services.openssh = {
     enable = true;
   };
@@ -110,6 +121,9 @@
     powerOnBoot = true;
   };
   services.blueman.enable = true;
+
+  # Expose battery status over D-Bus for Noctalia and other desktop apps.
+  services.upower.enable = true;
 
   services.tlp = {
     enable = true;

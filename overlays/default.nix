@@ -15,19 +15,22 @@
     # - gdbuspp: GCC '-Werror=maybe-uninitialized' false positive in
     #   proxy.cpp. Pin it to the (same-version) build from nixpkgs-stable
     #   (GCC 14), which is fetched from the binary cache.
-    gdbuspp = (import inputs.nixpkgs-stable {
-      system = final.system;
-      config.allowUnfree = true;
-    }).gdbuspp;
+    gdbuspp =
+      (import inputs.nixpkgs-stable {
+        system = final.system;
+        config.allowUnfree = true;
+      }).gdbuspp;
 
     # - openvpn3: abseil-cpp-20260817 needs C++20 while openvpn3 builds
     #   with -std=c++17. Build with C++20 and silence the resulting
     #   -Wdeprecated-enum-enum-conversion warnings (-Werror is on).
     openvpn3 = _prev.openvpn3.overrideAttrs (old: {
-      mesonFlags = (old.mesonFlags or [ ]) ++ [
-        "-Dcpp_std=c++20"
-        "-Dcpp_args=-Wno-error=deprecated-enum-enum-conversion"
-      ];
+      mesonFlags =
+        (old.mesonFlags or [])
+        ++ [
+          "-Dcpp_std=c++20"
+          "-Dcpp_args=-Wno-error=deprecated-enum-enum-conversion"
+        ];
     });
   };
 
