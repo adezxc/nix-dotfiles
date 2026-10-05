@@ -181,6 +181,16 @@ in {
     indicator-caps-lock
   '';
 
+  # Cursor theme (phinger-cursors). Handles installing the theme,
+  # ~/.icons/default/index.theme (Inherits=), GTK2/GTK3 cursor settings,
+  # and XCURSOR_THEME/XCURSOR_SIZE session variables.
+  home.pointerCursor = {
+    package = pkgs.phinger-cursors;
+    name = "phinger-cursors-light";
+    size = 36;
+    gtk.enable = true;
+  };
+
   home.packages = with pkgs; [
     wofi
     swaylock
@@ -211,7 +221,7 @@ in {
     # Bigger cursor: 24 is small on the fractionally scaled outputs.
     extraSessionCommands = ''
       export ELECTRON_OZONE_PLATFORM_HINT=wayland
-      export XCURSOR_SIZE=48
+      export XCURSOR_THEME=phinger-cursors-light
     '';
 
     config = {
@@ -292,6 +302,10 @@ in {
           tap_button_map = "lrm";
           natural_scroll = "disabled";
         };
+      };
+
+      seat."*" = {
+        xcursor_theme = "phinger-cursors-light 36";
       };
 
       keybindings = let
