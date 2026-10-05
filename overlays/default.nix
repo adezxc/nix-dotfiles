@@ -7,6 +7,10 @@
   # You can change versions, add patches, set compilation flags, anything really.
   # https://nixos.wiki/wiki/Overlays
   modifications = final: _prev: {
+    # Slack with the default "Knock Brush" new-message notification sound
+    # replaced by the classic Skype new-message sound.
+    slack = _prev.callPackage ../pkgs/slack {slack = _prev.slack;};
+
     # TODO: drop this override block once nixos-unstable builds these again.
     #
     # Both fail to build from the main nixpkgs (nixos-unstable) since the
