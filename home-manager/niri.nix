@@ -73,44 +73,59 @@
 
       // Monitor setup, translated from the old kanshi profiles.
       //
-      // Unlike kanshi, niri has no dynamic profiles: each output block
-      // applies whenever that connector is connected, and positions are
-      // static. Connector names may differ from sway's — check
-      // `niri msg outputs` while docked. (The old kanshi profiles also
-      // disabled the internal display when docked; use
-      // `niri msg output eDP-1 off` for that, or add `off` below.)
+      // Monitors are matched by make/model/serial (from `niri msg outputs`)
+      // rather than connector name where possible, because the same
+      // connector (DP-2) carries different monitors on the home and office
+      // docks. Unlike kanshi, niri has no dynamic profiles: each block
+      // applies whenever that monitor is connected, and positions are
+      // static. (The old kanshi profiles also disabled the internal
+      // display when docked; use `niri msg output eDP-1 off` for that.)
+
       // Laptop internal display
       output "eDP-1" {
           scale 1.0
       }
 
-      // Home: Dell S2721DGF (main, 144 Hz) + Dell U2722DE (side, rotated)
-      output "HDMI-A-1" {
+      // Home: Dell S2721DGF (main, 144 Hz) — HDMI-A-1
+      output "Dell Inc. DELL S2721DGF 77SGR83" {
           mode "2560x1440@143.912"
           position x=0 y=593
       }
-      output "DP-2" {
+
+      // Home: Dell U2722DE (side, rotated) — DP-2
+      output "Dell Inc. DELL U2722DE BH169H3" {
           mode "2560x1440"
           position x=2560 y=0
           transform "90"
       }
 
-      // TODO: connector names for the other docking setups (from the
-      // old kanshi profiles) are unknown — fill them in with
-      // `niri msg outputs` when docked there:
-      //
+      // Office: LG UltraFine 4K — also DP-2, hence matched by EDID
+      output "LG Electronics LG ULTRAFINE 109NTQDQC932" {
+          mode "3840x2160@59.997"
+          scale 1.5
+          position x=0 y=0
+      }
+
       // Work: Samsung LS34A650U ultrawide
-      // output "DP-?" {
-      //     mode "3440x1440@99.982"
-      //     position x=0 y=0
-      // }
-      //
-      // Office: LG UltraFine 4K
-      // output "DP-?" {
-      //     mode "3840x2160@59.997"
-      //     scale 1.5
-      //     position x=0 y=0
-      // }
+      output "Samsung Electric Company LS34A650U HNTR302475" {
+          mode "3440x1440@99.982"
+          position x=0 y=0
+      }
+
+      // Other monitors from the old kanshi config:
+
+      // LG Ultra HD 4K
+      output "LG Electronics LG Ultra HD 0x00092091" {
+          mode "3840x2160@59.997"
+          scale 1.5
+          position x=0 y=1086
+      }
+
+      // Lenovo P27h-20
+      output "Lenovo Group Limited P27h-20 V905YGRW" {
+          mode "2560x1440@59.951"
+          position x=0 y=0
+      }
 
       // Noctalia shell + tray applets
       // (the sleep mirrors the old sway startup commands).
@@ -139,7 +154,7 @@
       }
 
       binds {
-          Mod+Return { spawn "ghostty"; }
+          Mod+Return { spawn "${pkgs.ghostty}/bin/ghostty"; }
           Mod+Shift+Q { close-window; }
           // Noctalia launcher (replaces wofi)
           Mod+D { spawn "noctalia" "msg" "panel-toggle" "launcher"; }
@@ -305,6 +320,7 @@
   };
 
   home.packages = with pkgs; [
+    ghostty
     wl-clipboard
     brightnessctl
     playerctl
