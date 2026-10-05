@@ -48,9 +48,10 @@
           // Same inner gap as the old sway config.
           gaps 10
 
-          // Solid background, like sway's `output * bg #2E3440 solid_color`.
-          // (Noctalia's wallpaper module is disabled in its config.)
-          background-color "#2E3440"
+          // Transparent so Noctalia's stationary wallpaper layer (see the
+          // layer-rule below) is visible at all times; niri's own background
+          // only shows if the wallpaper layer is missing.
+          background-color "transparent"
 
           // Nord-ish focus indication, matching the old sway colors.
           focus-ring {
@@ -62,6 +63,16 @@
               width 2
               active-color "#88C0D0"
               inactive-color "#3B4252"
+          }
+      }
+
+      // Instant workspace switching. To disable all animations, put
+      // `off` directly on the `animations` section; individual ones can
+      // be turned off the same way (e.g. `horizontal-view-movement` for
+      // the camera scrolling to a focused off-screen window).
+      animations {
+          workspace-switch {
+              off
           }
       }
 
@@ -119,6 +130,22 @@
       output "Lenovo Group Limited P27h-20 V905YGRW" {
           mode "2560x1440@59.951"
           position x=0 y=0
+      }
+
+      // Stationary wallpaper (per Noctalia docs, "Option 2"): the
+      // wallpaper layer is placed on niri's backdrop, so it does not
+      // scroll with the workspace strip — like sway/swaybg.
+      layer-rule {
+          match namespace="^noctalia-wallpaper"
+          place-within-backdrop true
+      }
+
+      // No workspace shadows in the overview, so the stationary wallpaper
+      // looks clean behind the workspace cards.
+      overview {
+          workspace-shadow {
+              off
+          }
       }
 
       // Noctalia shell + tray applets
@@ -203,6 +230,17 @@
           Mod+Shift+9 { move-column-to-workspace 9; }
           Mod+Shift+0 { move-column-to-workspace 10; }
 
+          // Columns: stack the focused window below the column to its
+          // left (vertical split — e.g. two terminals top/bottom), or
+          // expel the bottom window back out to its own column.
+          Mod+Comma { consume-window-into-column; }
+          Mod+Period { expel-window-from-column; }
+
+          // Consume/expel in one bind, depending on which side the
+          // neighbouring column is on.
+          Mod+BracketLeft { consume-or-expel-window-left; }
+          Mod+BracketRight { consume-or-expel-window-right; }
+
           // Layout
           // (sway's manual splith/splitv have no niri equivalent — columns
           // split automatically; sway's "layout stacking" has none either.)
@@ -244,10 +282,13 @@
   programs.noctalia = {
     enable = true;
     settings = {
-      # Solid niri background instead of a wallpaper (matches the old
-      # sway setup's solid #2E3440 background).
+      # Wallpaper (replaces swaybg + the old solid sway background).
+      # The picker browses ~/Pictures/Wallpapers (the NASA dailies); the
+      # default is the newest one present. Picking a wallpaper from the UI
+      # overrides this in Noctalia's own settings.toml.
       wallpaper = {
-        enabled = false;
+        directory = "${config.home.homeDirectory}/Pictures/Wallpapers";
+        default.path = "${config.home.homeDirectory}/Pictures/Wallpapers/nasa-2026-04-29.jpg";
       };
 
       # Idle behaviour, replacing swayidle (previously: `swayidle -w
