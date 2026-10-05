@@ -51,17 +51,22 @@
     enable = true;
   };
 
-  # Sway
-  programs.sway = {
-    enable = true;
-    wrapperFeatures.gtk = true;
+  # Niri. The compositor itself is configured via home-manager
+  # (wayland.windowManager.niri in home-manager/niri.nix).
+  #
+  # Binary cache for the noctalia flake input (see flake.nix).
+  nix.settings = {
+    extra-substituters = ["https://noctalia.cachix.org"];
+    extra-trusted-public-keys = ["noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="];
   };
 
-  # Autologin to sway via greetd
+  # Autologin to niri via greetd. niri-session starts niri through the
+  # user's systemd manager (units are installed by home-manager), which
+  # imports the environment for spawned commands.
   services.greetd = {
     enable = true;
     settings.default_session = {
-      command = "${pkgs.sway}/bin/sway";
+      command = "${pkgs.niri}/bin/niri-session";
       user = "adam";
     };
   };
@@ -73,11 +78,11 @@
     pulse.enable = true;
   };
 
-  # XDG portals
+  # XDG portals — niri uses the GNOME portal for screencasting and the
+  # GTK portal for file dialogs.
   xdg.portal = {
     enable = true;
-    wlr.enable = true;
-    extraPortals = [pkgs.xdg-desktop-portal-gtk];
+    extraPortals = [pkgs.xdg-desktop-portal-gtk pkgs.xdg-desktop-portal-gnome];
   };
 
   # Fonts

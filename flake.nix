@@ -24,6 +24,14 @@
 
     nixvim.url = "github:nix-community/nixvim";
     nixvim.inputs.nixpkgs.follows = "nixpkgs";
+
+    # Noctalia desktop shell (used with niri on terrorblade).
+    # The `cachix` branch always points to the latest commit built and
+    # pushed to the Noctalia binary cache, so this input won't trigger
+    # local builds. NOTE: nixpkgs deliberately does NOT follow our
+    # nixpkgs — the binary cache only has builds against Noctalia's own
+    # pinned nixpkgs.
+    noctalia.url = "github:noctalia-dev/noctalia/cachix";
   };
 
   outputs = {
@@ -33,6 +41,7 @@
     agenix,
     microvm,
     nixvim,
+    noctalia,
     ...
   } @ inputs: let
     inherit (self) outputs;
@@ -97,8 +106,9 @@
             home-manager.users.adam.imports = [
               nixvim.homeModules.nixvim
               ./home-manager/home.nix
-              ./home-manager/sway.nix
+              ./home-manager/niri.nix
               ./home-manager/neovim.nix
+              noctalia.homeModules.default
             ];
           }
         ];
