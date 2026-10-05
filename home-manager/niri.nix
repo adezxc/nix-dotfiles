@@ -16,15 +16,9 @@
                   // NOTE: niri does not support per-device xkb configuration
                   // (unlike sway's `input "vendor:product:name" { xkb_* }`);
                   // there is a single global keymap (per-device input config
-                  // is planned upstream). The old sway config used:
-                  //   internal laptop keyboard: grp:alt_shift_toggle + caps:swapescape
-                  //   Keychron K8 Pro:           grp:alt_shift_toggle
-                  //   Kinesis Adv360 / Adv360P:  grp:ctrls_toggle
-                  // Since options can't be scoped per device here, all
-                  // keyboards get Alt+Shift layout toggling and Caps Lock
-                  // <-> Escape. Add "grp:ctrls_toggle" to the options as
-                  // well if the Adv360 behaviour is wanted everywhere.
-                  options "grp:alt_shift_toggle,caps:swapescape"
+                  // is planned upstream). Both Ctrl keys together toggle
+                  // between the declared layouts; Caps Lock is left as-is.
+                  options "grp:ctrls_toggle"
               }
           }
 
