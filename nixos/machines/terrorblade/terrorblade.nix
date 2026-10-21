@@ -123,12 +123,45 @@
   services.blueman.enable = true;
 
   # Expose battery status over D-Bus for Noctalia and other desktop apps.
+  # upower is read-only with respect to charge thresholds — it never writes
+  # /sys/class/power_supply/BAT0/charge_control_*_threshold, so it cannot
+  # interfere with TLP's START/STOP_CHARGE_THRESH_BAT0. The daemon that
+  # *does* conflict with TLP is power-profiles-daemon, which is not enabled
+  # here (TLP would refuse to start / tlp-stat would warn otherwise).
   services.upower.enable = true;
+
+  # This ThinkPad (T14 Gen 5 AMD) only supports s2idle (ACPI: S0 S4 S5, no
+  # S3), which drains ~2%/h. On lid close, suspend first, then hibernate to
+  # the LUKS-backed vg-swap LV after HibernateDelaySec. On AC just suspend.
+  boot.resumeDevice = "/dev/mapper/vg-swap";
+  services.logind.settings.Login = {
+    HandleLidSwitch = "suspend-then-hibernate";
+    HandleLidSwitchExternalPower = "suspend";
+  };
+  systemd.sleep.settings.Sleep.HibernateDelaySec = "2h";
+
+  # Faster hibernate image save/restore: compress with more threads (default
+  # 3) and use lz4 instead of lzo (much faster decompression on resume).
+  # lz4 is a module (CONFIG_CRYPTO_LZ4=m), so it must be in the initrd for
+  # the resuming kernel to decompress the image.
+  boot.kernelParams = [
+    "hibernate.compressor=lz4"
+    "hibernate_compression_threads=8"
+  ];
+  boot.initrd.kernelModules = ["lz4"];
+
+  # Firmware updates (BIOS/EC, NVMe, etc.) via LVFS: `fwupdmgr refresh &&
+  # fwupdmgr get-updates && fwupdmgr update`.
+  services.fwupd.enable = true;
 
   services.tlp = {
     enable = true;
     settings = {
-      START_CHARGE_THRESH_BAT0 = 50;
+      # Battery care: keep the battery topped up near 80% at all times.
+      # With START=75, the battery recharges as soon as it drops below 75%
+      # (self-discharge while on AC), so it hovers at ~80% instead of
+      # cycling the whole 50-80% band.
+      START_CHARGE_THRESH_BAT0 = 75;
       STOP_CHARGE_THRESH_BAT0 = 80;
 
       # WiFi powersave off (unreliable, causes latency spikes)
@@ -148,6 +181,16 @@
   };
 
   programs.nix-ld.enable = true;
+
+  # Make the ThinkPad mic-mute LED writable by the desktop user so the
+  # fn+F4 handler in home-manager (niri.nix: micMuteToggle) can sync it
+  # with the real PipeWire mute state. The LED lives in sysfs and has no
+  # /dev node, so udev ownership rules don't apply; tmpfiles is the
+  # simplest way to relax the mode (and it is re-applied on every
+  # nixos-rebuild, not just at boot).
+  systemd.tmpfiles.rules = [
+    "f /sys/class/leds/platform::micmute/brightness 0666 - - -"
+  ];
 
   security.pam.loginLimits = [
     {

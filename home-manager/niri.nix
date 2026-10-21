@@ -2,7 +2,31 @@
   pkgs,
   config,
   ...
-}: {
+}: let
+  # fn+F4 (XF86AudioMicMute) handler. Toggles the default microphone via
+  # Noctalia (so its OSD shows) and then syncs the ThinkPad hardware
+  # mic-mute LED with the actual PipeWire mute state. The LED is purely
+  # cosmetic — the EC does not mute the DMIC in hardware — but it stays
+  # lit otherwise, which looks like the mic is dead. The sysfs file is
+  # made user-writable via a tmpfiles rule in the NixOS config.
+  # Call with "sync" to only update the LED (used at session startup).
+  micMuteToggle = pkgs.writeShellScript "mic-mute-toggle" ''
+    LED=/sys/class/leds/platform::micmute/brightness
+
+    if [ "''${1:-}" != "sync" ]; then
+      noctalia msg mic-mute
+    fi
+
+    # Give the daemon a moment to apply the new state, then read it back.
+    sleep 0.4
+    if ${pkgs.wireplumber}/bin/wpctl get-volume @DEFAULT_AUDIO_SOURCE@ 2>/dev/null \
+      | ${pkgs.gnugrep}/bin/grep -q MUTED; then
+      echo 1 > "$LED"
+    else
+      echo 0 > "$LED"
+    fi
+  '';
+in {
   wayland.windowManager.niri = {
     enable = true;
 
@@ -151,6 +175,9 @@
       // Noctalia shell + tray applets
       // (the sleep mirrors the old sway startup commands).
       spawn-at-startup "noctalia"
+      // Clear a stale mic-mute LED left on by the firmware (see
+      // micMuteToggle above).
+      spawn-sh-at-startup "sleep 3 && ${micMuteToggle} sync"
       spawn-sh-at-startup "sleep 2 && nm-applet --indicator"
       spawn-sh-at-startup "sleep 2 && blueman-applet"
       spawn-sh-at-startup "sleep 2 && solaar -w hide"
@@ -263,7 +290,7 @@
           XF86AudioMute allow-when-locked=true { spawn "noctalia" "msg" "volume-mute"; }
           XF86AudioLowerVolume allow-when-locked=true { spawn "noctalia" "msg" "volume-down"; }
           XF86AudioRaiseVolume allow-when-locked=true { spawn "noctalia" "msg" "volume-up"; }
-          XF86AudioMicMute allow-when-locked=true { spawn "noctalia" "msg" "mic-volume-mute"; }
+          XF86AudioMicMute allow-when-locked=true { spawn-sh "${micMuteToggle}"; }
           XF86MonBrightnessDown allow-when-locked=true { spawn "noctalia" "msg" "brightness-down"; }
           XF86MonBrightnessUp allow-when-locked=true { spawn "noctalia" "msg" "brightness-up"; }
 
