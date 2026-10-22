@@ -358,7 +358,7 @@ in
 
   services.calibre-web = {
     listen.ip = "127.0.0.1";
-    enable = true;
+    enable = false;
     options = {
       enableBookUploading = true;
       enableBookConversion = true;
@@ -373,7 +373,7 @@ in
   };
 
   services.freshrss = {
-    enable = true;
+    enable = false;
     baseUrl = "https://freshrss.example.com";
     virtualHost = "freshrss.adamjasinski.xyz";
     passwordFile = "/etc/nixos/freshrss_password";
