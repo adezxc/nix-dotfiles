@@ -164,11 +164,9 @@
       START_CHARGE_THRESH_BAT0 = 75;
       STOP_CHARGE_THRESH_BAT0 = 80;
 
-      # WiFi powersave off (unreliable, causes latency spikes)
       WIFI_PWR_ON_AC = "off";
       WIFI_PWR_ON_BAT = "off";
 
-      # CPU
       CPU_ENERGY_PERF_POLICY_ON_AC = "balance_performance";
       CPU_ENERGY_PERF_POLICY_ON_BAT = "power";
       CPU_BOOST_ON_AC = 1;
@@ -209,6 +207,10 @@
 
   security.sudo.wheelNeedsPassword = false;
   security.polkit.enable = true;
+
+  environment.systemPackages = [
+    inputs.zen-browser.packages.${pkgs.stdenv.hostPlatform.system}.default
+  ];
 
   system.stateVersion = "25.11";
 }

@@ -32,6 +32,11 @@
     # nixpkgs — the binary cache only has builds against Noctalia's own
     # pinned nixpkgs.
     noctalia.url = "github:noctalia-dev/noctalia/cachix";
+
+    zen-browser = {
+      url = "github:youwen5/zen-browser-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = {

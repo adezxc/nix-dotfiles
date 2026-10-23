@@ -422,13 +422,73 @@ in {
     };
   };
 
+  xdg.desktopEntries.zen-work = {
+    name = "Zen Work";
+    genericName = "Web Browser";
+    exec = "zen --profile ${config.home.homeDirectory}/.config/zen/98rkkzfh.Work-new --name zen-work %U";
+    icon = "zen";
+    terminal = false;
+    categories = ["Network" "WebBrowser"];
+    mimeType = [
+      "text/html"
+      "text/xml"
+      "application/xhtml+xml"
+      "application/vnd.mozilla.xul+xml"
+      "x-scheme-handler/http"
+      "x-scheme-handler/https"
+    ];
+    settings = {
+      StartupWMClass = "zen-work";
+    };
+    actions = {
+      new-window = {
+        name = "New Window";
+        exec = "zen --profile ${config.home.homeDirectory}/.config/zen/98rkkzfh.Work-new --new-window %U";
+      };
+      new-private-window = {
+        name = "New Private Window";
+        exec = "zen --profile ${config.home.homeDirectory}/.config/zen/98rkkzfh.Work-new --private-window %U";
+      };
+    };
+  };
+
+  xdg.desktopEntries.zen-personal = {
+    name = "Zen Personal";
+    genericName = "Web Browser";
+    exec = "zen --profile ${config.home.homeDirectory}/.config/zen/woehx0et.default-release --name zen-personal %U";
+    icon = "zen";
+    terminal = false;
+    categories = ["Network" "WebBrowser"];
+    mimeType = [
+      "text/html"
+      "text/xml"
+      "application/xhtml+xml"
+      "application/vnd.mozilla.xul+xml"
+      "x-scheme-handler/http"
+      "x-scheme-handler/https"
+    ];
+    settings = {
+      StartupWMClass = "zen-personal";
+    };
+    actions = {
+      new-window = {
+        name = "New Window";
+        exec = "zen --profile ${config.home.homeDirectory}/.config/zen/woehx0et.default-release --new-window %U";
+      };
+      new-private-window = {
+        name = "New Private Window";
+        exec = "zen --profile ${config.home.homeDirectory}/.config/zen/woehx0et.default-release --private-window %U";
+      };
+    };
+  };
+
   xdg.mimeApps = {
     enable = true;
     defaultApplications = {
-      "x-scheme-handler/http" = ["firefox-work.desktop"];
-      "x-scheme-handler/https" = ["firefox-work.desktop"];
-      "text/html" = ["firefox-work.desktop"];
-      "application/xhtml+xml" = ["firefox-work.desktop"];
+      "x-scheme-handler/http" = ["zen-work.desktop"];
+      "x-scheme-handler/https" = ["zen-work.desktop"];
+      "text/html" = ["zen-work.desktop"];
+      "application/xhtml+xml" = ["zen-work.desktop"];
     };
   };
 }
