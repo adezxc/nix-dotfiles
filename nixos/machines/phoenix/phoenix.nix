@@ -22,7 +22,6 @@
     ./metrics.nix
     # nixarr replacement — inert until services.mediastack.enable = true
     outputs.nixosModules.mediastack
-    ./dispatcharr.nix
   ];
 
   networking.hostName = "phoenix";

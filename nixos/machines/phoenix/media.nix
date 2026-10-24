@@ -6,8 +6,6 @@
 }:
 let
   jellyfinConfigDir = "${config.services.mediastack.stateDir}/jellyfin/config";
-  reclaimerrStateDir = "${config.services.mediastack.stateDir}/reclaimerr";
-  reclaimerrPort = 8000;
 
   # --- Music stack (slskd + navidrome + explo; lidarr via mediastack) ---
   slskdStateDir = "${config.services.mediastack.stateDir}/slskd";
@@ -102,18 +100,7 @@ in
   # as indexer + download client) is not in the stable channel.
   services.lidarr.package = pkgs.lidarr-nightly;
 
-  # Reclaimerr follows the mediastack state and media
-  # ownership conventions. It needs media-group access to remove sidecar files
-  # itself when it deletes or moves a library item.
-  users.groups.reclaimerr = { };
-  users.users.reclaimerr = {
-    isSystemUser = true;
-    group = "reclaimerr";
-    extraGroups = [ "media" ];
-  };
-
   systemd.tmpfiles.rules = [
-    "d '${reclaimerrStateDir}' 0750 reclaimerr reclaimerr - -"
     "d '${slskdStateDir}' 0770 slskd media - -"
     "d '${slskdStateDir}/incomplete' 0770 slskd media - -"
     # setgid so downloads created by slskd (primary group 'slskd') inherit
@@ -129,49 +116,6 @@ in
     # explo exec's `python3 search_ytmusic.py` from its working directory
     "L+ '${exploStateDir}/search_ytmusic.py' - - - - ${pkgs.explo}/share/explo/search_ytmusic.py"
   ];
-
-  systemd.services.reclaimerr = {
-    description = "Reclaimerr media-library cleanup service";
-    after = [
-      "network-online.target"
-      "systemd-tmpfiles-setup.service"
-    ];
-    wants = [ "network-online.target" ];
-    wantedBy = [ "multi-user.target" ];
-
-    environment = {
-      DATA_DIR = reclaimerrStateDir;
-      STATIC_DIR = "${reclaimerrStateDir}/static";
-      AVATARS_DIR = "${reclaimerrStateDir}/static/avatars";
-      FRONTEND_DIST = "${pkgs.reclaimerr}/share/reclaimerr/frontend";
-      API_HOST = "0.0.0.0";
-      API_PORT = toString reclaimerrPort;
-      GRANIAN_HOST = "0.0.0.0";
-      GRANIAN_PORT = toString reclaimerrPort;
-      TZ = config.time.timeZone;
-      COOKIE_SECURE = "false";
-    };
-
-    serviceConfig = {
-      User = "reclaimerr";
-      Group = "reclaimerr";
-      WorkingDirectory = reclaimerrStateDir;
-      ExecStart = "${pkgs.reclaimerr}/bin/reclaimerr";
-      Restart = "on-failure";
-      RestartSec = "5s";
-      UMask = "0077";
-      NoNewPrivileges = true;
-      PrivateTmp = true;
-      ProtectHome = true;
-      ProtectSystem = "strict";
-      ReadWritePaths = [
-        reclaimerrStateDir
-        config.services.mediastack.mediaDir
-      ];
-    };
-  };
-
-  networking.firewall.allowedTCPPorts = [ reclaimerrPort ];
 
   # ===================================================================
   # Music stack: slskd (Soulseek) + Navidrome + Explo.
@@ -358,7 +302,7 @@ in
 
   services.calibre-web = {
     listen.ip = "127.0.0.1";
-    enable = false;
+    enable = true;
     options = {
       enableBookUploading = true;
       enableBookConversion = true;

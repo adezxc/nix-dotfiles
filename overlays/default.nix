@@ -11,6 +11,24 @@
     # replaced by the classic Skype new-message sound.
     slack = _prev.callPackage ../pkgs/slack {slack = _prev.slack;};
 
+    # TODO: drop once nixpkgs' pyopenjtalk-plus tests pass again.
+    # One test (test_run_njd_from_mecab_invalid_input_should_not_break_next_call)
+    # asserts an old error message ("must be str" vs "Expected str, got int")
+    # and fails the build of pyopenjtalk-plus -> piper-tts -> calibre ->
+    # calibre-web. The test only checks an exception's wording, so skip checks.
+    pythonPackagesExtensions =
+      _prev.pythonPackagesExtensions
+      ++ [
+        (_pyFinal: pyPrev: {
+          pyopenjtalk-plus = pyPrev.pyopenjtalk-plus.overridePythonAttrs {doCheck = false;};
+        })
+      ];
+
+    # TODO: drop once nixpkgs' calibre passes its own install checks again.
+    # calibre 9.16.0's installCheck fails only on test_speech_dispatcher
+    # ("No module named 'speechd'"); the other 672 tests pass.
+    calibre = _prev.calibre.overrideAttrs {doInstallCheck = false;};
+
     # TODO: drop this override block once nixos-unstable builds these again.
     #
     # Both fail to build from the main nixpkgs (nixos-unstable) since the
