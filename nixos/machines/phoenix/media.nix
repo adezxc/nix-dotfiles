@@ -317,7 +317,7 @@ in
   };
 
   services.freshrss = {
-    enable = false;
+    enable = true;
     baseUrl = "https://freshrss.example.com";
     virtualHost = "freshrss.adamjasinski.xyz";
     passwordFile = "/etc/nixos/freshrss_password";
