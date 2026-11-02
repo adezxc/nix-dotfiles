@@ -57,7 +57,6 @@
       # 127.0.0.1, which is where nginx connects from).
       transmission = {port = 9091;};
       slskd = {port = 5030;};
-      explo = {port = 7288;};
 
       # --- monitoring ---------------------------------------------------
       # NOTE: grafana has auth.anonymous.enabled = true (Viewer), so anyone

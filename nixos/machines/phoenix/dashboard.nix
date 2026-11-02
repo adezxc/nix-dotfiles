@@ -154,13 +154,6 @@
       icon = "slskd.png";
       description = "Soulseek";
     })
-    (mk {
-      name = "Explo";
-      href = "https://explo.internal.adamjasinski.xyz";
-      port = 7288;
-      icon = "explo.png";
-      description = "Discovery";
-    })
   ];
 
   infra = [

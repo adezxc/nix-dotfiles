@@ -7,15 +7,13 @@
 let
   jellyfinConfigDir = "${config.services.mediastack.stateDir}/jellyfin/config";
 
-  # --- Music stack (slskd + navidrome + explo; lidarr via mediastack) ---
+  # --- Music stack (slskd + navidrome; lidarr via mediastack) ---
   slskdStateDir = "${config.services.mediastack.stateDir}/slskd";
   # Completed slskd downloads land here (in `lidarr/<download id>/...` when
   # grabbed through the Lidarr slskd plugin); Lidarr imports them from this
   # dir into its library tree and the plugin deletes the leftovers. Kept
   # OUTSIDE the music library so Navidrome never sees partial downloads.
   slskdDownloadsDir = "${config.services.mediastack.mediaDir}/downloads/slskd";
-  exploStateDir = "${config.services.mediastack.stateDir}/explo";
-  exploPort = 7288;
   navidromePort = 4533;
   musicDir = "${config.services.mediastack.mediaDir}/library/music";
 
@@ -109,21 +107,14 @@ in
     "d '${slskdStateDir}' 0770 slskd media - -"
     "d '${slskdStateDir}/incomplete' 0770 slskd media - -"
     # setgid so downloads created by slskd (primary group 'slskd') inherit
-    # the media group, letting lidarr/explo move and retag them
+    # the media group, letting lidarr move and retag them
     "d '${slskdDownloadsDir}' 2775 slskd media - -"
-    "d '${exploStateDir}' 0770 explo media - -"
-    "d '${exploStateDir}/config' 0770 explo media - -"
-    "d '${exploStateDir}/cache' 0770 explo media - -"
-    # explo downloads into a subfolder of the music library
-    "d '${musicDir}/explo' 0775 explo media - -"
     # Lidarr's own subtree, kept separate from the slskd-managed part
     "d '${musicDir}/lidarr' 0775 lidarr media - -"
-    # explo exec's `python3 search_ytmusic.py` from its working directory
-    "L+ '${exploStateDir}/search_ytmusic.py' - - - - ${pkgs.explo}/share/explo/search_ytmusic.py"
   ];
 
   # ===================================================================
-  # Music stack: slskd (Soulseek) + Navidrome + Explo.
+  # Music stack: slskd (Soulseek) + Navidrome.
   # Lidarr is enabled through mediastack above (port 8686), running the nightly
   # build so the slskd plugin (Soulseek indexer + download client) can be
   # installed from System > Plugins:
@@ -137,7 +128,7 @@ in
   #   SLSKD_USERNAME / SLSKD_PASSWORD      - web UI login
   #   SLSKD_SLSK_USERNAME / SLSKD_SLSK_PASSWORD - Soulseek network login
   #     (logging in with a fresh username/password registers the account)
-  #   SLSKD_API_KEY                        - API key explo uses
+  #   SLSKD_API_KEY                        - readwrite API key (Lidarr plugin)
   #   SLSKD_JWT_KEY                        - optional, avoids JWT warning
   services.slskd = {
     enable = true;
@@ -156,9 +147,9 @@ in
   };
 
   # Share read access to the music library; downloads dir is group-writable
-  # for the media group so explo can migrate completed files into the library.
+  # for the media group so lidarr can import completed files.
   users.users.slskd.extraGroups = [ "media" ];
-  # Group-writable downloads so lidarr/explo can move and retag them.
+  # Group-writable downloads so lidarr can move and retag them.
   systemd.services.slskd.serviceConfig.UMask = "0002";
 
   # Navidrome: music streaming server (Subsonic API + web UI on 4533).
@@ -178,57 +169,6 @@ in
     };
   };
   users.users.navidrome.extraGroups = [ "media" ];
-
-  # Explo: ListenBrainz-powered music discovery ("Discover Weekly" for
-  # Navidrome). Requests missing tracks from slskd (YouTube fallback) and
-  # creates playlists in Navidrome. Web UI on port 7288 (tailscale-only).
-  # Its entire configuration lives in ${exploStateDir}/.env and is editable
-  # from the web UI (WEB_UI=true).
-  users.users.explo = {
-    isSystemUser = true;
-    group = "media";
-  };
-
-  systemd.services.explo = {
-    description = "Explo music discovery for Navidrome";
-    after = [ "network-online.target" ];
-    wants = [ "network-online.target" ];
-    wantedBy = [ "multi-user.target" ];
-
-    # explo shells out to yt-dlp, ffmpeg and python3 (ytmusicapi fallback for
-    # YouTube search when no YOUTUBE_API_KEY is set).
-    environment = {
-      PATH = lib.mkForce (
-        lib.makeBinPath [
-          pkgs.ffmpeg
-          pkgs.yt-dlp
-          (pkgs.python3.withPackages (ps: [ ps.ytmusicapi ]))
-        ]
-      );
-      HOME = exploStateDir;
-      XDG_CACHE_HOME = "${exploStateDir}/cache";
-      TZ = config.time.timeZone;
-    };
-
-    serviceConfig = {
-      User = "explo";
-      Group = "media";
-      WorkingDirectory = exploStateDir;
-      ExecStart = "${pkgs.explo}/bin/explo --config ${exploStateDir}/.env";
-      Restart = "on-failure";
-      RestartSec = "10s";
-      UMask = "0002";
-      NoNewPrivileges = true;
-      PrivateTmp = true;
-      ProtectHome = true;
-      ProtectSystem = "strict";
-      ReadWritePaths = [
-        exploStateDir
-        musicDir
-        slskdDownloadsDir
-      ];
-    };
-  };
 
   # nixpkgs' sabnzbd module only merges `settings` into sabnzbd.ini when
   # configFile is null — it defaults to non-null for stateVersion < 26.05,
@@ -251,12 +191,11 @@ in
   };
 
   # Lidarr-managed music lives in its own subtree, separate from the
-  # slskd/explo-managed part of the library (everything stays inside
-  # musicDir so Navidrome scans it all).
-  # NOTE: explo runs with primary group "media" (like the mediastack *arr users,
-  # incl. lidarr) so every service in the music pipeline can write into each
-  # other's directories — otherwise e.g. explo-created artist folders block
-  # Lidarr imports with "Permissions error".
+  # slskd-managed part of the library (everything stays inside musicDir so
+  # Navidrome scans it all).
+  # NOTE: lidarr runs with primary group "media" (like the mediastack *arr
+  # users) so every service in the music pipeline can write into each other's
+  # directories — otherwise lidarr imports fail with "Permissions error".
 
   # Jellyfin keeps its settings in mutable XML files, so patch the two values
   # that matter for remote playback on every service start. Everything else in
