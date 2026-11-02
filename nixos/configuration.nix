@@ -31,6 +31,11 @@
     settings = {
       experimental-features = ["nix-command flakes"];
       flake-registry = "";
+      # Hardlink identical files between store paths instead of storing
+      # duplicate copies. Costs a little CPU per build; only affects paths
+      # added from here on — run `nix store optimise` once for the existing
+      # store.
+      auto-optimise-store = true;
       trusted-users = [
         "adam"
       ];
