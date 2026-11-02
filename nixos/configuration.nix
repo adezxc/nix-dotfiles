@@ -37,6 +37,15 @@
     };
     channel.enable = false;
 
+    # Keep the store from growing without bound. The timer runs daily; the
+    # retention window is what matters, so generations older than a month are
+    # dropped (leaving ~30 days of rollback). Without this the store grew to
+    # 116G in generations nobody would ever roll back to.
+    gc = {
+      automatic = true;
+      options = "--delete-older-than 30d";
+    };
+
     registry = lib.mapAttrs (_: flake: {inherit flake;}) flakeInputs;
   };
 
