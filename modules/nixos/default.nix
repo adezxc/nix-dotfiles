@@ -3,4 +3,5 @@
 {
   # List your module files here
   mediastack = ./mediastack.nix;
+  internal-ingress = ./internal-ingress.nix;
 }

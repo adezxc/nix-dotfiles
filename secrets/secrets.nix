@@ -9,4 +9,6 @@ let
   all = systems ++ users;
 in {
   "home-assistant.age".publicKeys = systems ++ users;
+  # Hostinger API token for the *.internal.adamjasinski.xyz ACME DNS-01 wildcard.
+  "hostinger-dns.age".publicKeys = all;
 }

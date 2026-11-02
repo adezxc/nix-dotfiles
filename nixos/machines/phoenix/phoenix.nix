@@ -20,6 +20,11 @@
     ./audioteka-abs.nix
     ./home-assistant.nix
     ./metrics.nix
+    # internal-only *.internal.adamjasinski.xyz vhosts (LAN + tailnet ACL)
+    ./ingress.nix
+    ./dashboard.nix
+    ./split-dns.nix
+    outputs.nixosModules.internal-ingress
     # nixarr replacement — inert until services.mediastack.enable = true
     outputs.nixosModules.mediastack
   ];
