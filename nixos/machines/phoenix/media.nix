@@ -2,6 +2,7 @@
   config,
   lib,
   pkgs,
+  inputs,
   ...
 }:
 let
@@ -98,6 +99,22 @@ in
       configFile = "/etc/nixos/recyclarr.yaml";
     };
   };
+
+  # Reuse the stock Seerr package builder and the existing service/state layout.
+  services.seerr.package = pkgs.seerr.overrideAttrs (finalAttrs: _: {
+    version = "3.5.2";
+    src = inputs.seerr-fork.outPath;
+
+    pnpmDeps = pkgs.fetchPnpmDeps {
+      inherit (finalAttrs) pname version src;
+      pnpm = pkgs.pnpm_10.override {
+        nodejs-slim = pkgs.nodejs-slim_22;
+      };
+      fetcherVersion = 3;
+      # Dependency hash for the pinned v3.5.2 fork.
+      hash = "sha256-NiptqZ+r8JsH47sapaKPo3D3DojCn6j0g/OXkhmjNuU=";
+    };
+  });
 
   # Lidarr *nightly*: plugin support (needed for the slskd plugin — Soulseek
   # as indexer + download client) is not in the stable channel.
