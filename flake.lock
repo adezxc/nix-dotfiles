@@ -209,7 +209,25 @@
         "nixpkgs-stable": "nixpkgs-stable",
         "nixvim": "nixvim",
         "noctalia": "noctalia",
+        "seerr-fork": "seerr-fork",
         "zen-browser": "zen-browser"
+      }
+    },
+    "seerr-fork": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794533330,
+        "narHash": "sha256-AtQdo1vxo9xmRtwNcbue9pY/WT1lSA04l81OKAV9Y9Y=",
+        "owner": "huhfoo",
+        "repo": "seerr",
+        "rev": "cfb50d34dd60dddec2daf2d4794ef328994140e3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "huhfoo",
+        "repo": "seerr",
+        "rev": "cfb50d34dd60dddec2daf2d4794ef328994140e3",
+        "type": "github"
       }
     },
     "spectrum": {

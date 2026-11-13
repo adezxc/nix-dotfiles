@@ -13,6 +13,12 @@
     nixpkgs-kernel.url = "github:nixos/nixpkgs/241313f4e8e508cb9b13278c2b0fa25b9ca27163";
     # Also see the 'unstable-packages' overlay at 'overlays/default.nix'.
 
+    # Seerr v3.5.2 (huhfoo fork), pinned to the release commit.
+    seerr-fork = {
+      url = "github:huhfoo/seerr/cfb50d34dd60dddec2daf2d4794ef328994140e3";
+      flake = false;
+    };
+
     # Home manager
     home-manager.url = "github:nix-community/home-manager/master";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
